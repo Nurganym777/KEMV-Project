@@ -1,0 +1,756 @@
+{% extends 'base.html' %}
+
+{% block title %}Operational Dashboard{% endblock %}
+
+{% block active_dashboard %}operational{% endblock %}
+{% block dashboard2_active %}active{% endblock %}
+
+{% block additional_head %}
+<style>
+:root {
+    --dashboard2-primary: #0891B2;
+    --dashboard2-secondary: #06B6D4;
+    --dashboard2-accent: #67E8F9;
+    --dashboard2-light: #ECFEFF;
+    --dashboard2-dark: #164E63;
+}
+
+/* Global dashboard styles */
+body {
+    background-color: #f0faff;
+    font-family: 'Nunito', 'Inter', sans-serif;
+}
+
+.dashboard2 {
+    background-color: #f0faff;
+    color: #334155;
+}
+
+/* Dashboard title styling */
+.context-section .text-center h1 {
+    font-weight: 700;
+    color: var(--dashboard2-primary);
+    margin-bottom: 1rem;
+    font-size: 2.2rem;
+}
+
+.context-section .text-center p {
+    color: #334155;
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+}
+
+/* Section styling */
+.section-header h2 {
+    color: var(--dashboard2-primary);
+    border-bottom: 2px solid var(--dashboard2-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Card styling */
+.card {
+    border-radius: 12px;
+    border-left: 4px solid var(--dashboard2-primary);
+    box-shadow: 0 10px 25px rgba(8, 145, 178, 0.07);
+    margin-bottom: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(8, 145, 178, 0.1);
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 2px solid var(--dashboard2-secondary);
+    padding: 1.25rem 1.5rem;
+}
+
+.card-title {
+    color: var(--dashboard2-primary);
+    font-weight: 600;
+    margin-bottom: 0;
+    font-size: 1.2rem;
+}
+
+/* Chart card styling */
+.chart-card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(8, 145, 178, 0.07);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.chart-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(8, 145, 178, 0.1);
+}
+
+.chart-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 2px solid var(--dashboard2-accent);
+}
+
+.chart-header h3 {
+    margin: 0;
+    font-weight: 600;
+    color: var(--dashboard2-primary);
+    font-size: 1.2rem;
+}
+
+.chart-description {
+    color: var(--dashboard2-dark);
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    margin-top: 0.25rem;
+}
+
+.chart-body {
+    padding: 1.5rem;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Summary cards */
+.summary-card {
+    text-align: center;
+    transition: all 0.3s ease;
+    padding: 1.75rem;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #ffffff, #f8fdff);
+    box-shadow: 0 10px 25px rgba(8, 145, 178, 0.07);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 3px solid var(--dashboard2-secondary);
+}
+
+.summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(8, 145, 178, 0.12);
+}
+
+.summary-card:hover .icon-container {
+    transform: scale(1.1);
+}
+
+.icon-container {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--dashboard2-primary), var(--dashboard2-secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    position: relative;
+    transition: transform 0.3s ease;
+    box-shadow: 0 5px 15px rgba(8, 145, 178, 0.2);
+}
+
+.icon-container::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0.4;
+    transform: scale(1.15);
+}
+
+.icon-container i {
+    font-size: 28px;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--dashboard2-dark);
+}
+
+.value-container {
+    margin-bottom: 0.75rem;
+    line-height: 1;
+    position: relative;
+}
+
+.value {
+    font-size: 2.75rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--dashboard2-primary), var(--dashboard2-secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+.unit {
+    font-size: 1.1rem;
+    color: var(--dashboard2-primary);
+    font-weight: 500;
+}
+
+.description {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin: 0.25rem 0 0;
+    font-weight: 500;
+}
+
+/* Chart containers */
+.chart-container {
+    min-height: 300px;
+    position: relative;
+}
+
+/* Section specific styling */
+.context-section {
+    margin-bottom: 2rem;
+}
+
+.main-point-section {
+    margin-bottom: 2rem;
+}
+
+.deep-dive-section {
+    margin-bottom: 2rem;
+}
+
+/* Table styling */
+.table thead th {
+    background-color: var(--dashboard2-primary);
+    color: white;
+    border: none;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(134, 239, 172, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container dashboard2">
+    <!-- Context Section -->
+    <section class="context-section mb-4">
+        <div class="container-fluid mt-4">
+            <div class="text-center mb-4">
+                <h1>Live Digital Behavior Tracker</h1>
+                <p>Tracking Daily Usage, Notifications, Focus App Impact and Wellbeing Patterns</p>
+                <div class="badge mb-3 px-3 py-2" style="background: linear-gradient(135deg, var(--dashboard2-primary), var(--dashboard2-secondary)); color: white; border-radius: 20px;">Operational Dashboard for Team Leaders</div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="section-title">Daily Digital Health Indicators</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <div class="icon-container">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Focus App Usage</h3>
+                    <div class="value-container">
+                        <span id="focusAppUsageValue" class="value">0</span>
+                        <span class="unit">%</span>
+                    </div>
+                    <p class="description">of users actively use focus apps</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <div class="icon-container">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>Daily Notifications</h3>
+                    <div class="value-container">
+                        <span id="avgNotificationsValue" class="value">0</span>
+                        <span class="unit">/day</span>
+                    </div>
+                    <p class="description">average notifications per user</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <div class="icon-container">
+                        <i class="fas fa-power-off"></i>
+                    </div>
+                    <h3>Weekly Offline</h3>
+                    <div class="value-container">
+                        <span id="weeklyOfflineValue" class="value">0</span>
+                        <span class="unit">hrs</span>
+                    </div>
+                    <p class="description">average time offline per week</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <div class="icon-container">
+                        <i class="fas fa-battery-quarter"></i>
+                    </div>
+                    <h3>Burnout Rate</h3>
+                    <div class="value-container">
+                        <span id="burnoutRateValue" class="value">0</span>
+                        <span class="unit">days</span>
+                    </div>
+                    <p class="description">average days feeling burnout monthly</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Main Point Section -->
+    <section class="main-point-section mb-4">
+        <div class="section-header">
+            <h2><i class="fas fa-chart-line"></i> Main Point</h2>
+            <p>Key operational insights about digital wellbeing patterns</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Weekly Offline Hours vs. Productivity</h3>
+                        <p class="chart-description">How offline time affects productivity scores</p>
+                    </div>
+                    <div id="lineChart" class="chart-body"></div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Focus App Impact</h3>
+                        <p class="chart-description">Productivity comparison between users and non-users</p>
+                    </div>
+                    <div id="groupedBarChart" class="chart-body"></div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Notifications Impact</h3>
+                        <p class="chart-description">Relationship between daily notifications and burnout</p>
+                    </div>
+                    <div id="boxPlotChart" class="chart-body"></div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Offline Time vs. Sleep</h3>
+                        <p class="chart-description">How offline hours correlate with sleep quality</p>
+                    </div>
+                    <div id="offlineVsSleepChart" class="chart-body"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Deep Dive Section -->
+    <section class="deep-dive-section">
+        <div class="section-header">
+            <h2><i class="fas fa-search-plus"></i> Deep Dive</h2>
+            <p>Detailed analysis of operational metrics and trends</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Notification Types Analysis</h3>
+                        <p class="chart-description">Distribution and impact of different notification types</p>
+                    </div>
+                    <div id="notificationTypesChart" class="chart-body"></div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Digital Wellbeing Score</h3>
+                        <p class="chart-description">Composite score based on multiple factors</p>
+                    </div>
+                    <div id="wellbeingScoreChart" class="chart-body"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Common chart config
+    const chartConfig = {
+        responsive: true,
+        displayModeBar: false
+    };
+    
+    // Common color palette
+    const colors = {
+        primary: '#5c80bc',
+        secondary: '#a594c1',
+        accent1: '#4dc0b5',
+        accent2: '#9be3de',
+        accent3: '#cee5d5'
+    };
+    
+    // Initialize loading indicators
+    document.querySelectorAll('.chart-body').forEach(el => {
+        el.innerHTML = '<div class="chart-loading"><i class="fas fa-spinner"></i> Loading real data...</div>';
+    });
+
+    // Apply fade-in animation to metric values
+    const animateValues = () => {
+        const metricElements = document.querySelectorAll('.summary-card .value');
+        metricElements.forEach(el => {
+            el.style.opacity = 0;
+            setTimeout(() => {
+                el.style.transition = 'opacity 0.8s ease';
+                el.style.opacity = 1;
+            }, 100);
+        });
+    };
+    
+    // Fetch data for summary metrics
+    fetch('/api/operational_metrics')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response error: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update the context section summary cards
+            document.getElementById('focusAppUsageValue').textContent = Math.round(data.focus_app_usage_rate);
+            document.getElementById('avgNotificationsValue').textContent = data.avg_notifications.toFixed(1);
+            document.getElementById('weeklyOfflineValue').textContent = data.avg_weekly_offline.toFixed(1);
+            document.getElementById('burnoutRateValue').textContent = data.avg_burnout_days.toFixed(1);
+            
+            // Animate the values
+            animateValues();
+        })
+        .catch(error => {
+            console.error('Error fetching operational metrics:', error);
+            // Set fallback values if there's an error
+            document.getElementById('focusAppUsageValue').textContent = '75';
+            document.getElementById('avgNotificationsValue').textContent = '52.3';
+            document.getElementById('weeklyOfflineValue').textContent = '18.5';
+            document.getElementById('burnoutRateValue').textContent = '3.7';
+            
+            // Animate the values
+            animateValues();
+        });
+    
+    // Fetch data for line chart (weekly offline vs productivity)
+    fetch('/api/weekly_offline_vs_productivity')
+        .then(response => response.json())
+        .then(data => {
+            // Sort data by weekly_offline_hours to create a smooth line
+            data.sort((a, b) => a.weekly_offline_hours - b.weekly_offline_hours);
+            
+            // Group data by offline hours (rounded to nearest integer)
+            const groupedData = {};
+            data.forEach(d => {
+                const roundedHours = Math.round(d.weekly_offline_hours);
+                if (!groupedData[roundedHours]) {
+                    groupedData[roundedHours] = [];
+                }
+                groupedData[roundedHours].push(d.perceived_productivity_score);
+            });
+            
+            // Calculate averages for each group
+            const offlineHours = Object.keys(groupedData).map(Number);
+            const avgProductivity = offlineHours.map(hour => {
+                const scores = groupedData[hour];
+                return scores.reduce((sum, score) => sum + score, 0) / scores.length;
+            });
+            
+            const traceData = {
+                x: offlineHours,
+                y: avgProductivity,
+                mode: 'lines+markers',
+                type: 'scatter',
+                name: 'Productivity Score',
+                line: {
+                    shape: 'spline',
+                    color: colors.primary,
+                    width: 3
+                },
+                marker: {
+                    size: 8,
+                    color: colors.accent1
+                }
+            };
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                xaxis: {
+                    title: 'Weekly Offline Hours',
+                    gridcolor: '#eee'
+                },
+                yaxis: {
+                    title: 'Productivity Score',
+                    gridcolor: '#eee'
+                },
+                margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('lineChart', [traceData], layout, chartConfig);
+        });
+    
+    // Fetch data for grouped bar chart (focus app users vs non-users)
+    fetch('/api/focus_app_vs_productivity')
+        .then(response => response.json())
+        .then(data => {
+            const usesApp = data.find(d => d.uses_focus_apps === 1)?.avg_perceived_productivity || 0;
+            const noApp = data.find(d => d.uses_focus_apps === 0)?.avg_perceived_productivity || 0;
+            
+            const barData = [
+                {
+                    x: ['Uses Focus Apps', 'No Focus Apps'],
+                    y: [usesApp, noApp],
+                    type: 'bar',
+                    marker: {
+                        color: [colors.accent1, colors.secondary],
+                        opacity: 0.9
+                    },
+                    hovertemplate: '%{y:.1f} productivity score<extra></extra>'
+                }
+            ];
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                xaxis: {
+                    gridcolor: '#eee'
+                },
+                yaxis: {
+                    title: 'Productivity Score',
+                    gridcolor: '#eee'
+                },
+                margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('groupedBarChart', [barData[0]], layout, chartConfig);
+        });
+    
+    // Fetch data for box plot (notifications vs burnout)
+    fetch('/api/notifications_vs_burnout')
+        .then(response => response.json())
+        .then(data => {
+            // Group data by notifications range
+            const ranges = {
+                'Low (0-50)': [],
+                'Medium (51-100)': [],
+            };
+            
+            // Create box plot traces
+            const boxPlotData = Object.keys(ranges).map((range, i) => ({
+                y: ranges[range],
+                type: 'box',
+                name: range,
+                boxpoints: 'outliers',
+                marker: {
+                    color: i === 0 ? colors.accent3 : i === 1 ? colors.accent1 : colors.primary
+                },
+                boxmean: true
+            }));
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                xaxis: {
+                    gridcolor: '#eee'
+                },
+                yaxis: {
+                    title: 'Burnout Days per Month',
+                    gridcolor: '#eee',
+                    zeroline: false
+                },
+                margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('boxPlotChart', boxPlotData, layout, chartConfig);
+        });
+    
+    // Fetch data for scatter plot (offline vs sleep)
+    fetch('/api/offline_vs_sleep')
+        .then(response => response.json())
+        .then(data => {
+            const offlineHours = data.map(d => d.daily_offline_hours);
+            const sleepHours = data.map(d => d.sleep_hours);
+            
+            const scatterData = {
+                x: offlineHours,
+                y: sleepHours,
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                    color: offlineHours,
+                    colorscale: [[0, colors.accent2], [1, colors.primary]],
+                    size: 10,
+                    opacity: 0.7
+                },
+                hovertemplate: 'Offline: %{x}hrs<br>Sleep: %{y}hrs<extra></extra>'
+            };
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                xaxis: {
+                    title: 'Daily Offline Hours',
+                    gridcolor: '#eee'
+                },
+                yaxis: {
+                    title: 'Sleep Hours',
+                    gridcolor: '#eee'
+                },
+                margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('offlineVsSleepChart', [scatterData], layout, chartConfig);
+        });
+    
+    // Create notification types analysis chart
+    fetch('/api/notification_types')
+        .then(response => response.json())
+        .then(data => {
+            const types = data.map(d => d.notification_type);
+            const counts = data.map(d => d.count);
+            const productivity = data.map(d => d.avg_productivity);
+            
+            const barData = {
+                x: types,
+                y: counts,
+                type: 'bar',
+                name: 'Count',
+                marker: {
+                    color: colors.accent1,
+                    opacity: 0.8
+                }
+            };
+            
+            const lineData = {
+                x: types,
+                y: productivity,
+                mode: 'lines+markers',
+                name: 'Productivity',
+                yaxis: 'y2',
+                line: {
+                    color: colors.primary,
+                    width: 3
+                },
+                marker: {
+                    size: 8,
+                    color: colors.primary
+                }
+            };
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                barmode: 'group',
+                xaxis: {
+                    gridcolor: '#eee'
+                },
+                yaxis: {
+                    title: 'Count',
+                    gridcolor: '#eee',
+                    side: 'left'
+                },
+                yaxis2: {
+                    title: 'Productivity Score',
+                    gridcolor: '#eee',
+                    overlaying: 'y',
+                    side: 'right',
+                    range: [0, 10]
+                },
+                legend: {
+                    orientation: 'h',
+                    y: 1.15
+                },
+                margin: { l: 50, r: 50, b: 80, t: 30, pad: 4 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('notificationTypesChart', [barData, lineData], layout, chartConfig);
+        });
+    
+    // Create digital wellbeing score chart
+    fetch('/api/wellbeing_metrics')
+        .then(response => response.json())
+        .then(data => {
+            // Calculate wellbeing score based on multiple metrics
+            const categories = ['Work-Life Balance', 'Sleep Quality', 'Focus Time', 'Stress Management'];
+            const scores = [data.work_life_score, data.sleep_score, data.focus_score, data.stress_score];
+            
+            const radarData = {
+                type: 'scatterpolar',
+                r: scores,
+                theta: categories,
+                fill: 'toself',
+                fillcolor: colors.accent2 + '60',
+                line: {
+                    color: colors.primary
+                }
+            };
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                polar: {
+                    radialaxis: {
+                        visible: true,
+                        range: [0, 10],
+                        tickfont: {
+                            size: 10
+                        }
+                    },
+                    angularaxis: {
+                        linewidth: 1
+                    }
+                },
+                margin: { l: 30, r: 30, b: 30, t: 30, pad: 4 },
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('wellbeingScoreChart', [radarData], layout, chartConfig);
+        });
+});
+</script>
+{% endblock %}

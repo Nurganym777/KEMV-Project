@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media & Productivity Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Social Media & Productivity Analysis</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard1">Strategic Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard2">Operational Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard3">Tactical Dashboard</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% block content %}
+        <div class="dashboard-container">
+            <!-- Hero Section -->
+            <section class="welcome-hero mb-5 text-center py-5 px-3">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h1 class="display-4"><i class="fas fa-chart-bar"></i> Social Media & Productivity Analytics</h1>
+                        <p class="lead mt-3">Explore the relationship between digital habits and workplace effectiveness</p>
+                        <div class="welcome-stats mt-4 row justify-content-center">
+                            <div class="col-md-3 stat-item">
+                                <i class="fas fa-users fa-2x"></i>
+                                <h3>250+</h3>
+                                <p>Survey Participants</p>
+                            </div>
+                            <div class="col-md-3 stat-item">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                                <h3>15+</h3>
+                                <p>Key Metrics</p>
+                            </div>
+                            <div class="col-md-3 stat-item">
+                                <i class="fas fa-lightbulb fa-2x"></i>
+                                <h3>3</h3>
+                                <p>Specialized Dashboards</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Dashboard Cards -->
+            <section class="dashboard-options">
+                <div class="section-header text-center mb-4">
+                    <h2><i class="fas fa-th-large"></i> Choose Your Dashboard</h2>
+                    <p>Each dashboard provides tailored insights for different organizational needs</p>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="dashboard-card strategic">
+                            <div class="card-icon">
+                                <i class="fas fa-chess fa-3x"></i>
+                            </div>
+                            <h3>Strategic Dashboard</h3>
+                            <p>Long-term policy insights on digital wellbeing for HR managers and health teams</p>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check-circle"></i> Long-term trends analysis</li>
+                                <li><i class="fas fa-check-circle"></i> Cross-demographic insights</li>
+                                <li><i class="fas fa-check-circle"></i> Policy effectiveness metrics</li>
+                            </ul>
+                            <a href="/dashboard1" class="btn btn-primary btn-lg mt-3">View Dashboard</a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="dashboard-card operational">
+                            <div class="card-icon">
+                                <i class="fas fa-cogs fa-3x"></i>
+                            </div>
+                            <h3>Operational Dashboard</h3>
+                            <p>Daily usage & app effectiveness metrics for team leaders and wellbeing managers</p>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check-circle"></i> Notification impact analysis</li>
+                                <li><i class="fas fa-check-circle"></i> Focus app effectiveness</li>
+                                <li><i class="fas fa-check-circle"></i> Digital wellbeing scores</li>
+                            </ul>
+                            <a href="/dashboard2" class="btn btn-primary btn-lg mt-3">View Dashboard</a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="dashboard-card tactical">
+                            <div class="card-icon">
+                                <i class="fas fa-tasks fa-3x"></i>
+                            </div>
+                            <h3>Tactical Dashboard</h3>
+                            <p>Actionable insights for immediate team productivity improvements</p>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check-circle"></i> Break optimization data</li>
+                                <li><i class="fas fa-check-circle"></i> Job-specific insights</li>
+                                <li><i class="fas fa-check-circle"></i> Demographic effectiveness</li>
+                            </ul>
+                            <a href="/dashboard3" class="btn btn-primary btn-lg mt-3">View Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- About Section -->
+            <section class="about-section mt-5">
+                <div class="section-header">
+                    <h2><i class="fas fa-info-circle"></i> About The Project</h2>
+                    <p>Understanding the complex relationship between digital habits and workplace effectiveness</p>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="chart-card h-100">
+                            <div class="chart-header">
+                                <h3>Our Methodology</h3>
+                            </div>
+                            <div class="chart-body">
+                                <p>This analytics platform synthesizes data from multiple sources:</p>
+                                <ul>
+                                    <li>Digital behavior tracking</li>
+                                    <li>Productivity self-assessments</li>
+                                    <li>Workplace health surveys</li>
+                                    <li>Job satisfaction metrics</li>
+                                </ul>
+                                <p>Data is collected through anonymous surveys and processed through our analytics engine to identify patterns and generate actionable insights for different organizational levels.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="chart-card h-100">
+                            <div class="chart-header">
+                                <h3>Key Findings</h3>
+                            </div>
+                            <div class="chart-body">
+                                <div class="key-finding">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <p>Users who take regular digital breaks show 23% higher productivity scores</p>
+                                </div>
+                                <div class="key-finding">
+                                    <i class="fas fa-bell-slash"></i>
+                                    <p>Reducing daily notifications by 50% correlates with 15% less reported stress</p>
+                                </div>
+                                <div class="key-finding">
+                                    <i class="fas fa-hourglass-half"></i>
+                                    <p>Optimal social media usage for productivity: 30-45 minutes per day in short bursts</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        {% endblock %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

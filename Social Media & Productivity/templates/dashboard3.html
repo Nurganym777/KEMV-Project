@@ -1,0 +1,2710 @@
+{% extends 'base.html' %}
+
+{% block title %}Behavior Patterns & Productivity Gaps{% endblock %}
+
+{% block active_dashboard %}tactical{% endblock %}
+{% block dashboard3_active %}active{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard3-modern.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block additional_head %}
+<style>
+:root {
+    /* Analytical deep purple, indigo, teal color palette */
+    --dashboard3-bg: #F4F4F6;  /* Neutral dark-gray background */
+    --dashboard3-card-bg: #ffffff;
+    --dashboard3-primary: #7209B7; /* Deep purple */
+    --dashboard3-secondary: #3A0CA3; /* Indigo */
+    --dashboard3-accent: #4361EE; /* Teal */
+    --dashboard3-accent2: #4CC9F0; /* Light blue */
+    --dashboard3-accent3: #560BAD; /* Rich purple */
+    --dashboard3-accent4: #F72585; /* Magenta - for highlighting */
+    --dashboard3-text: #2B2D42; /* Dark text for readability */
+    --dashboard3-text-muted: #6C757D; /* Muted text */
+    --dashboard3-card-border: rgba(0, 0, 0, 0.08);
+    --dashboard3-card-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.15);
+    --dashboard3-success: #06D6A0;
+    --dashboard3-warning: #FFD166;
+    --dashboard3-danger: #EF476F;
+    --dashboard3-info: #118AB2;
+}
+
+body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background-color: var(--dashboard3-bg);
+    color: var(--dashboard3-text);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.wrapper {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--dashboard3-secondary);
+    color: #fff;
+    padding: 20px;
+    box-shadow: 3px 0 10px rgba(0,0,0,0.2);
+    transition: all 0.3s;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.sidebar.collapsed {
+    width: 60px;
+}
+
+.sidebar.collapsed .sidebar-header h3 span,
+.sidebar.collapsed .sidebar-header p,
+.sidebar.collapsed .filter-section,
+.sidebar.collapsed .sidebar-footer {
+    display: none;
+}
+
+.sidebar.collapsed .toggle-collapse-btn i.fa-chevron-left {
+    transform: rotate(180deg);
+}
+
+.toggle-collapse-btn {
+    position: absolute;
+    top: 25px;
+    right: 15px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.toggle-collapse-btn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.sidebar-header {
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 20px;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.sidebar .filter-section {
+    margin-bottom: 25px;
+}
+
+.sidebar .filter-section h4 {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.sidebar label {
+    color: rgba(255,255,255,0.9);
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.sidebar .form-control {
+    background-color: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    margin-bottom: 15px;
+}
+
+.sidebar .form-control:focus {
+    background-color: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+    color: white;
+    box-shadow: none;
+}
+
+.sidebar .form-control option {
+    background-color: #2a3f5f;
+    color: white;
+}
+
+.sidebar-footer {
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.content {
+    width: 100%;
+    padding-left: 300px; /* sidebar width + padding */
+    transition: all 0.3s;
+}
+
+.sidebar.collapsed + .content {
+    padding-left: 80px;
+}
+
+/* Filter pills to show active filters */
+.filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    color: white;
+}
+
+.filter-pill .remove-pill {
+    background: none;
+    border: none;
+    color: white;
+    margin-left: 5px;
+    padding: 0;
+    cursor: pointer;
+    font-size: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Theme toggle */
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999;
+    background-color: var(--dashboard3-primary);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--dashboard3-card-shadow);
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.05);
+    background-color: var(--dashboard3-accent);
+}
+
+/* New Components Styling */
+/* Filter Chips */
+.filter-section {
+    padding: 15px 0;
+}
+
+.filter-container {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border: 1px solid var(--dashboard3-card-border);
+}
+
+.filter-chip {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--dashboard3-text);
+    margin-bottom: 5px;
+    margin-right: 5px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.filter-chip:hover {
+    background-color: rgba(var(--dashboard3-accent-rgb), 0.1);
+}
+
+.filter-chip.active {
+    background-color: var(--dashboard3-accent);
+    color: white;
+    font-weight: 500;
+}
+
+/* Insights Panel */
+.insights-panel {
+    background-color: var(--dashboard3-card-bg);
+    border-radius: 10px;
+    padding: 20px;
+    height: 100%;
+    box-shadow: var(--dashboard3-card-shadow);
+    border: 1px solid var(--dashboard3-card-border);
+}
+
+.insights-panel h5 {
+    color: var(--dashboard3-primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-bottom: 2px solid rgba(var(--dashboard3-primary-rgb), 0.1);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.insight-label {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--dashboard3-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.insight-value {
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+    color: var(--dashboard3-primary);
+}
+
+/* Chart Containers */
+.chart-container {
+    background-color: var(--dashboard3-card-bg);
+    border-radius: 10px;
+    box-shadow: var(--dashboard3-card-shadow);
+    padding: 20px;
+    height: 100%;
+    border: 1px solid var(--dashboard3-card-border);
+    position: relative;
+}
+
+.chart-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dashboard3-text);
+    margin-bottom: 0.25rem;
+}
+
+.loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--dashboard3-text-muted);
+}
+
+/* Deep Dive Section Tabs */
+.nav-tabs .nav-link {
+    color: var(--dashboard3-text-muted);
+    border: none;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--dashboard3-primary);
+    background-color: transparent;
+    border-bottom: 2px solid var(--dashboard3-primary);
+}
+
+.nav-tabs .nav-link:hover:not(.active) {
+    border-bottom: 2px solid rgba(var(--dashboard3-primary-rgb), 0.3);
+    color: var(--dashboard3-text);
+}
+
+.tab-content {
+    background-color: var(--dashboard3-card-bg);
+    border-radius: 0 0 10px 10px;
+}
+
+.table-analytics {
+    font-size: 0.9rem;
+}
+
+.table-analytics thead th {
+    background-color: rgba(var(--dashboard3-primary-rgb), 0.05);
+    color: var(--dashboard3-text);
+    font-weight: 600;
+    border-bottom: none;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+}
+
+.table-analytics tbody td {
+    vertical-align: middle;
+}
+
+.scrollable-table {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* Progress Bars */
+.progress {
+    background-color: rgba(var(--dashboard3-primary-rgb), 0.1);
+    border-radius: 20px;
+}
+
+.progress-bar {
+    background-color: var(--dashboard3-accent);
+    border-radius: 20px;
+}
+
+.theme-toggle:hover {
+    background-color: #3a5070;
+}
+
+body.dark-theme {
+    background-color: #1a1f2e;
+    color: #e4e6eb;
+}
+
+body.dark-theme .chart-card {
+    background: #2c3142;
+    border-color: #f76c5e;
+}
+
+body.dark-theme .kpi-card {
+    background: #2c3142;
+    color: #e4e6eb;
+}
+
+body.dark-theme .kpi-title {
+    color: #9ca3af;
+}
+
+body.dark-theme .display-5 {
+    color: #e4e6eb !important;
+}
+
+/* Toggle button for mobile */
+.sidebar-toggle {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1010;
+    display: none;
+    background: #2a3f5f;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        margin-left: -280px;
+    }
+    
+    .sidebar.active {
+        margin-left: 0;
+    }
+    
+    .content {
+        margin-left: 280px;
+        padding-top: 20px;
+        transition: all 0.3s;
+        min-height: 100vh;
+        padding-bottom: 50px;
+        background-color: var(--dashboard3-bg);
+    } /* Space for toggle button */
+    
+    .sidebar-toggle {
+        display: block;
+    }
+    
+    .content.sidebar-active {
+        padding-left: 20px;
+    }
+}
+
+.dashboard3 {
+    background: linear-gradient(135deg, #1e1e2f 0%, #171730 100%);
+    color: #f1f1f6;
+}
+
+/* Global dashboard styles */
+.dashboard-header {
+    background: var(--dashboard3-primary);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Section styling */
+.section-header h2 {
+    color: var(--dashboard3-secondary);
+    border-bottom: 2px solid var(--dashboard3-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-header p {
+    color: #D8B4FE; /* Bright lavender for better visibility */
+    font-weight: 500;
+}
+
+/* Card styling */
+.card {
+    background-color: var(--dashboard3-card-bg);
+    border-radius: 8px;
+    border: 1px solid var(--dashboard3-card-border);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Icon container styling */
+.icon-container {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--dashboard3-primary), var(--dashboard3-secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    position: relative;
+    transition: transform 0.3s ease;
+    box-shadow: 0 5px 15px rgba(219, 39, 119, 0.3);
+}
+
+.icon-container::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0.4;
+    transform: scale(1.15);
+}
+
+.icon-container i {
+    font-size: 28px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* KPI Card styling */
+.kpi-card {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    box-shadow: var(--dashboard3-card-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    border-top: 3px solid var(--dashboard3-primary);
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.kpi-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: var(--dashboard3-primary);
+    text-shadow: 0 2px 3px rgba(0,0,0,0.05);
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: baseline;
+}
+
+.kpi-value span.trend-indicator {
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+    opacity: 0.8;
+    font-weight: 600;
+}
+
+.kpi-value span.trend-up {
+    color: var(--dashboard3-success);
+}
+
+.kpi-value span.trend-down {
+    color: var(--dashboard3-danger);
+}
+
+.kpi-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--dashboard3-text-muted);
+    margin-bottom: 5px;
+}
+
+.kpi-icon {
+    font-size: 1.25rem;
+    color: var(--dashboard3-secondary);
+    margin-bottom: 10px;
+}
+
+.kpi-trend {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.kpi-trend-up {
+    color: #10b981;
+}
+
+.kpi-trend-down {
+    color: #ef4444;
+}
+
+/* Filter controls */
+.filter-controls {
+    background: var(--dashboard3-card-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.filter-label {
+    font-weight: 500;
+    color: var(--dashboard3-primary);
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+/* Chart card styling */
+.chart-card {
+    height: 100%;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: var(--dashboard3-card-shadow);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+    position: relative;
+    min-height: 350px;
+}
+
+.chart-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0;
+    background: var(--dashboard3-accent);
+    transition: width 0.3s ease;
+}
+
+.chart-card:hover::before {
+    width: 100%;
+}
+
+.chart-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--dashboard3-card-shadow-hover);
+}
+
+.chart-card::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, transparent 50%, var(--dashboard3-accent-light) 50%);
+    border-bottom-left-radius: 10px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.chart-card:hover::after {
+    opacity: 1;
+}
+
+.chart-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.chart-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    background: linear-gradient(to right, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.chart-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.3rem 0;
+    color: var(--dashboard3-primary);
+    position: relative;
+    padding-left: 0.5rem;
+}
+
+.chart-header h3::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: var(--dashboard3-accent);
+    border-radius: 2px;
+}
+
+.chart-description {
+    color: #D8B4FE;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    margin-top: 0.25rem;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.chart-body {
+    padding: 1.5rem;
+    min-height: 300px;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.chart-body:hover {
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+/* Loading indicators */
+.chart-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 250px;
+    color: var(--dashboard3-secondary);
+    font-size: 0.9rem;
+    background: linear-gradient(to right, rgba(59, 130, 246, 0.02), rgba(139, 92, 246, 0.02));
+    border-radius: 0.5rem;
+}
+
+.chart-loading i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0.5; transform: scale(0.9); }
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    <!-- Sidebar with Filters -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-chart-line me-2"></i><span>Tactical Dashboard</span></h3>
+            <p class="text-muted small mt-2 mb-0">Digital wellbeing insights</p>
+            <button class="toggle-collapse-btn" id="collapseToggle">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        
+        <div class="active-filters mt-3 mb-1">
+            <div class="filter-pills" id="activeFilterPills">
+                <!-- Active filter pills will be added here dynamically -->
+            </div>
+        </div>
+        
+        <div class="filter-section">
+            <h4>Filters</h4>
+            
+            <label for="jobTypeFilter" class="form-label">Job Type</label>
+            <select class="form-control" id="jobTypeFilter">
+                <option value="">All Job Types</option>
+                <option value="Developer">Developer</option>
+                <option value="Designer">Designer</option>
+                <option value="Manager">Manager</option>
+                <option value="Analyst">Analyst</option>
+            </select>
+            
+            <label for="genderFilter" class="form-label">Gender</label>
+            <select class="form-control" id="genderFilter">
+                <option value="">All Genders</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+            
+            <label for="platformFilter" class="form-label">Platform</label>
+            <select class="form-control" id="platformFilter">
+                <option value="">All Platforms</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Facebook">Facebook</option>
+                <option value="Twitter">Twitter</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="TikTok">TikTok</option>
+            </select>
+            
+            <label for="dateRangeFilter" class="form-label">Date Range</label>
+            <select class="form-control" id="dateRangeFilter">
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="365">Last year</option>
+            </select>
+        </div>
+        
+        <div class="filter-section">
+            <h4>Advanced Filters</h4>
+            
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="wellbeingAppFilter">
+                <label class="form-check-label" for="wellbeingAppFilter">
+                    Wellbeing App Users Only
+                </label>
+            </div>
+            
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="highStressFilter">
+                <label class="form-check-label" for="highStressFilter">
+                    High Stress Group
+                </label>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <button id="applyFilters" class="btn btn-primary w-100 mb-2">
+                <i class="fas fa-check"></i> Apply Filters
+            </button>
+            <button id="resetFilters" class="btn btn-outline-light w-100">
+                <i class="fas fa-undo"></i> Reset All
+            </button>
+            
+            <div class="mt-3 text-center">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i> Last updated: June 15, 2025
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <div class="container-fluid p-4">    
+            <!-- Dashboard Title -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="display-5 fw-bold text-primary">Digital Behavior by Group: Tactical Insights</h1>
+                    <p class="text-muted">Digital wellbeing analytics and productivity insights</p>
+                </div>
+            </div>
+            
+            <!-- Filter Section -->
+            <section class="filter-section mb-4">
+                <div class="filter-container p-3">
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="mb-3"><i class="fas fa-filter me-2"></i>Filter Data</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div class="filter-group me-4">
+                                    <label class="form-label small text-muted mb-1">Gender</label>
+                                    <div>
+                                        <span class="filter-chip active" data-filter="gender" data-value="all">All</span>
+                                        <span class="filter-chip" data-filter="gender" data-value="male">Male</span>
+                                        <span class="filter-chip" data-filter="gender" data-value="female">Female</span>
+                                        <span class="filter-chip" data-filter="gender" data-value="other">Other</span>
+                                    </div>
+                                </div>
+                                <div class="filter-group me-4">
+                                    <label class="form-label small text-muted mb-1">Job Type</label>
+                                    <div>
+                                        <span class="filter-chip active" data-filter="job" data-value="all">All</span>
+                                        <span class="filter-chip" data-filter="job" data-value="technical">Technical</span>
+                                        <span class="filter-chip" data-filter="job" data-value="creative">Creative</span>
+                                        <span class="filter-chip" data-filter="job" data-value="management">Management</span>
+                                        <span class="filter-chip" data-filter="job" data-value="administrative">Administrative</span>
+                                    </div>
+                                </div>
+                                <div class="filter-group">
+                                    <label class="form-label small text-muted mb-1">Age Group</label>
+                                    <div>
+                                        <span class="filter-chip active" data-filter="age" data-value="all">All</span>
+                                        <span class="filter-chip" data-filter="age" data-value="18-24">18-24</span>
+                                        <span class="filter-chip" data-filter="age" data-value="25-34">25-34</span>
+                                        <span class="filter-chip" data-filter="age" data-value="35-44">35-44</span>
+                                        <span class="filter-chip" data-filter="age" data-value="45+">45+</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Dashboard Content -->
+            <div class="row">
+                <!-- Left Panel - Insights Section -->
+                <div class="col-md-3 mb-4">
+                    <div class="insights-panel">
+                        <h5 class="mb-4"><i class="fas fa-lightbulb me-2"></i>Key Insights</h5>
+                        
+                        <div class="mb-4">
+                            <div class="insight-label">🔍 Highest Burnout Group</div>
+                            <p class="insight-value">Technical Staff</p>
+                            <small>9.2 days/month feeling burnout</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="insight-label">📊 Avg. Social Time by Gender</div>
+                            <p class="insight-value">Female: 94 min/day</p>
+                            <small>Male: 78 min/day | Other: 85 min/day</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="insight-label">💼 Most Digitally Distracted</div>
+                            <p class="insight-value">Creative Roles</p>
+                            <small>35% higher platform switching rate</small>
+                        </div>
+                        
+                        <hr class="my-4" style="opacity: 0.2;">
+                        
+                        <div>
+                            <h6 class="mb-3">Data Quality</h6>
+                            <div class="progress mb-2" style="height: 8px;">
+                                <div class="progress-bar" role="progressbar" style="width: 92%;" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small>92% completeness across all metrics</small>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- Main Chart Grid (2x2) -->
+                <div class="col-md-9">
+                    <div class="row">
+                        <!-- Box Plot: Stress vs Break Frequency -->
+                        <div class="col-md-6 mb-4">
+                            <div class="chart-container">
+                                <h5 class="chart-title">Stress vs Break Frequency</h5>
+                                <p class="text-muted small">Box plot by gender showing stress distribution relative to break frequency</p>
+                                <div id="stressBreaksBoxPlot" class="chart-body" style="height: 320px;">
+                                    <div class="loading-spinner">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        <span>Loading chart...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scatter Plot: Age vs Productivity Score -->
+                        <div class="col-md-6 mb-4">
+                            <div class="chart-container">
+                                <h5 class="chart-title">Age vs Productivity Score</h5>
+                                <p class="text-muted small">Correlation between age and productivity with trendline</p>
+                                <div id="ageProductivityScatter" class="chart-body" style="height: 320px;">
+                                    <div class="loading-spinner">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        <span>Loading chart...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clustered Bar: Social Media Time by Job Type -->
+                        <div class="col-md-6 mb-4">
+                            <div class="chart-container">
+                                <h5 class="chart-title">Social Media Time by Job Type</h5>
+                                <p class="text-muted small">Average minutes spent per platform across different job roles</p>
+                                <div id="socialMediaJobBar" class="chart-body" style="height: 320px;">
+                                    <div class="loading-spinner">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        <span>Loading chart...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bubble Chart: Sleep Hours vs Burnout Days -->
+                        <div class="col-md-6 mb-4">
+                            <div class="chart-container">
+                                <h5 class="chart-title">Sleep Hours vs Burnout Days</h5>
+                                <p class="text-muted small">Bubble size represents stress level, color indicates job type</p>
+                                <div id="sleepBurnoutBubble" class="chart-body" style="height: 320px;">
+                                    <div class="loading-spinner">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        <span>Loading chart...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Deep Dive Section -->
+    <section class="deep-dive-section mb-4">
+        <div class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-12 d-flex justify-content-between align-items-center">
+                    <h5 class="text-primary fw-bold mb-0"><i class="fas fa-search-plus me-2"></i> Deep Dive Analysis</h5>
+                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-file-export me-2"></i>Export CSV</button>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="chart-container p-0 pb-3">
+                        <!-- Tabs Navigation -->
+                        <ul class="nav nav-tabs" id="deepDiveTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="role-tab" data-bs-toggle="tab" data-bs-target="#role-tab-pane" type="button" role="tab" aria-controls="role-tab-pane" aria-selected="true">
+                                    <i class="fas fa-briefcase me-1"></i> By Role
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="gender-tab" data-bs-toggle="tab" data-bs-target="#gender-tab-pane" type="button" role="tab" aria-controls="gender-tab-pane" aria-selected="false">
+                                    <i class="fas fa-venus-mars me-1"></i> By Gender
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="age-tab" data-bs-toggle="tab" data-bs-target="#age-tab-pane" type="button" role="tab" aria-controls="age-tab-pane" aria-selected="false">
+                                    <i class="fas fa-user-clock me-1"></i> By Age Group
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <!-- Tab Content -->
+                        <div class="tab-content p-3" id="deepDiveTabContent">
+                            <!-- By Role Tab -->
+                            <div class="tab-pane fade show active" id="role-tab-pane" role="tabpanel" aria-labelledby="role-tab" tabindex="0">
+                                <div class="scrollable-table">
+                                    <table class="table table-hover table-analytics">
+                                        <thead>
+                                            <tr>
+                                                <th>Job Type</th>
+                                                <th>Avg. Productivity</th>
+                                                <th>Social Media Time</th>
+                                                <th>Stress Level</th>
+                                                <th>Burnout Days</th>
+                                                <th>Sleep Hours</th>
+                                                <th>Screen Breaks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Technical</strong></td>
+                                                <td>6.8</td>
+                                                <td>78 min</td>
+                                                <td>7.2</td>
+                                                <td>9.2</td>
+                                                <td>6.4</td>
+                                                <td>3.2</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Creative</strong></td>
+                                                <td>7.2</td>
+                                                <td>94 min</td>
+                                                <td>6.5</td>
+                                                <td>7.8</td>
+                                                <td>7.1</td>
+                                                <td>4.6</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Management</strong></td>
+                                                <td>7.9</td>
+                                                <td>65 min</td>
+                                                <td>8.1</td>
+                                                <td>8.3</td>
+                                                <td>6.2</td>
+                                                <td>2.8</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Administrative</strong></td>
+                                                <td>6.4</td>
+                                                <td>72 min</td>
+                                                <td>5.9</td>
+                                                <td>6.2</td>
+                                                <td>7.3</td>
+                                                <td>3.9</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- By Gender Tab -->
+                            <div class="tab-pane fade" id="gender-tab-pane" role="tabpanel" aria-labelledby="gender-tab" tabindex="0">
+                                <div class="scrollable-table">
+                                    <table class="table table-hover table-analytics">
+                                        <thead>
+                                            <tr>
+                                                <th>Gender</th>
+                                                <th>Avg. Productivity</th>
+                                                <th>Social Media Time</th>
+                                                <th>Stress Level</th>
+                                                <th>Burnout Days</th>
+                                                <th>Sleep Hours</th>
+                                                <th>Screen Breaks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Male</strong></td>
+                                                <td>7.1</td>
+                                                <td>78 min</td>
+                                                <td>7.4</td>
+                                                <td>7.9</td>
+                                                <td>6.8</td>
+                                                <td>3.4</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Female</strong></td>
+                                                <td>7.3</td>
+                                                <td>94 min</td>
+                                                <td>6.9</td>
+                                                <td>7.6</td>
+                                                <td>7.2</td>
+                                                <td>3.9</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Other</strong></td>
+                                                <td>7.0</td>
+                                                <td>85 min</td>
+                                                <td>7.1</td>
+                                                <td>8.2</td>
+                                                <td>6.7</td>
+                                                <td>3.6</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- By Age Group Tab -->
+                            <div class="tab-pane fade" id="age-tab-pane" role="tabpanel" aria-labelledby="age-tab" tabindex="0">
+                                <div class="scrollable-table">
+                                    <table class="table table-hover table-analytics">
+                                        <thead>
+                                            <tr>
+                                                <th>Age Group</th>
+                                                <th>Avg. Productivity</th>
+                                                <th>Social Media Time</th>
+                                                <th>Stress Level</th>
+                                                <th>Burnout Days</th>
+                                                <th>Sleep Hours</th>
+                                                <th>Screen Breaks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>18-24</strong></td>
+                                                <td>6.5</td>
+                                                <td>112 min</td>
+                                                <td>6.3</td>
+                                                <td>6.8</td>
+                                                <td>7.4</td>
+                                                <td>3.2</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>25-34</strong></td>
+                                                <td>7.2</td>
+                                                <td>89 min</td>
+                                                <td>7.8</td>
+                                                <td>8.2</td>
+                                                <td>6.8</td>
+                                                <td>3.6</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>35-44</strong></td>
+                                                <td>7.6</td>
+                                                <td>64 min</td>
+                                                <td>7.9</td>
+                                                <td>8.5</td>
+                                                <td>6.5</td>
+                                                <td>3.9</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>45+</strong></td>
+                                                <td>7.4</td>
+                                                <td>48 min</td>
+                                                <td>6.3</td>
+                                                <td>6.9</td>
+                                                <td>6.9</td>
+                                                <td>4.2</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                            <th>Sleep Hours</th>
+                                            <th>Social Media (min)</th>
+                                            <th>Screen Before Sleep</th>
+                                            <th>Productivity</th>
+                                            <th>Stress Level</th>
+                                            <th>Wellbeing App</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Table will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Correlation Heatmap -->
+                <div class="col-lg-4 mb-4">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Digital Behavior Correlation</h3>
+                            <p class="text-muted small">Heatmap showing relationships between key metrics</p>
+                        </div>
+                        <div id="correlationChart" class="chart-body"></div>
+                    </div>
+                </div>
+                
+                <!-- Recommendations -->
+                <div class="col-12 mb-4">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Action Recommendations</h3>
+                            <p class="text-muted small">Data-driven interventions to improve team productivity</p>
+                        </div>
+                        <div id="recommendationsTable" class="chart-body p-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get sidebar and content elements for use throughout the code
+    const sidebar = document.querySelector('.sidebar');
+    const content = document.querySelector('.content');
+    
+    // Sidebar collapse toggle functionality
+    const collapseToggle = document.getElementById('collapseToggle');
+    
+    if (collapseToggle) {
+        collapseToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            
+            // Save preference to localStorage
+            if (sidebar.classList.contains('collapsed')) {
+                localStorage.setItem('sidebarCollapsed', 'true');
+            } else {
+                localStorage.setItem('sidebarCollapsed', 'false');
+            }
+        });
+        
+        // Check if sidebar should be collapsed based on saved preference
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+    }
+    
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+            body.classList.toggle('dark-theme');
+            
+            if (body.classList.contains('dark-theme')) {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        // Apply saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark-theme');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+    }
+    
+    // Function to update filter pills
+    function updateFilterPills() {
+        const pillsContainer = document.getElementById('activeFilterPills');
+        pillsContainer.innerHTML = '';
+        
+        const jobType = document.getElementById('jobTypeFilter').value;
+        const gender = document.getElementById('genderFilter').value;
+        const platform = document.getElementById('platformFilter').value;
+        const dateRange = document.getElementById('dateRangeFilter').value;
+        const wellbeingAppOnly = document.getElementById('wellbeingAppFilter').checked;
+        const highStressOnly = document.getElementById('highStressFilter').checked;
+        
+        // Add pills for active filters
+        if (jobType) {
+            addFilterPill('Job: ' + jobType, 'jobTypeFilter');
+        }
+        
+        if (gender) {
+            addFilterPill('Gender: ' + gender, 'genderFilter');
+        }
+        
+        if (platform) {
+            addFilterPill('Platform: ' + platform, 'platformFilter');
+        }
+        
+        if (dateRange) {
+            addFilterPill('Last ' + dateRange + ' days', 'dateRangeFilter');
+        }
+        
+        if (wellbeingAppOnly) {
+            addFilterPill('App Users Only', 'wellbeingAppFilter');
+        }
+        
+        if (highStressOnly) {
+            addFilterPill('High Stress Only', 'highStressFilter');
+        }
+    }
+    
+    // Function to add a filter pill
+    function addFilterPill(text, filterId) {
+        const pillsContainer = document.getElementById('activeFilterPills');
+        
+        const pill = document.createElement('div');
+        pill.className = 'filter-pill';
+        pill.innerHTML = text + 
+            '<button class="remove-pill" data-filter="' + filterId + '">' +
+            '<i class="fas fa-times"></i>' +
+            '</button>';
+        
+        pillsContainer.appendChild(pill);
+        
+        // Add click event to remove button
+        pill.querySelector('.remove-pill').addEventListener('click', function() {
+            const targetFilter = this.getAttribute('data-filter');
+            
+            if (targetFilter === 'wellbeingAppFilter' || targetFilter === 'highStressFilter') {
+                document.getElementById(targetFilter).checked = false;
+            } else {
+                document.getElementById(targetFilter).value = '';
+            }
+            
+            // Update pills and refresh charts
+            updateFilterPills();
+            refreshAllCharts();
+        });
+    }
+    
+    // Add event listeners to update pills when filters change
+    document.querySelectorAll('.sidebar select, .sidebar input[type="checkbox"]').forEach(el => {
+        el.addEventListener('change', updateFilterPills);
+    });
+    
+    // Initialize filter pills
+    updateFilterPills();
+    
+    // Sidebar toggle functionality for mobile
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    
+    if (sidebarToggle) {
+        // Create mobile toggle button if it doesn't exist
+        if (!document.querySelector('.sidebar-toggle')) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'sidebar-toggle';
+            toggleBtn.innerHTML = '<i class="fas fa-filter"></i>';
+            toggleBtn.id = 'sidebarToggle';
+            document.body.appendChild(toggleBtn);
+        }
+        
+        // Add click event to toggle sidebar
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+            content.classList.toggle('sidebar-active');
+        });
+    }
+    
+    // Apply filters button functionality
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', function() {
+            // Show loading indicators
+            document.querySelectorAll('.chart-body').forEach(el => {
+                const chartId = el.id;
+                el.innerHTML = '<div class="chart-loading"><i class="fas fa-chart-line"></i><span>Loading filtered data...</span></div>';
+            });
+            
+            // Get filter values
+            const jobType = document.getElementById('jobTypeFilter').value;
+            const gender = document.getElementById('genderFilter').value;
+            const platform = document.getElementById('platformFilter').value;
+            const dateRange = document.getElementById('dateRangeFilter').value;
+            const wellbeingAppOnly = document.getElementById('wellbeingAppFilter').checked;
+            const highStressOnly = document.getElementById('highStressFilter').checked;
+            
+            // Display filter status notification
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-success alert-dismissible fade show';
+            notification.setAttribute('role', 'alert');
+            notification.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Filters applied:</strong> 
+                ${jobType ? ' Job Type: ' + jobType + ',' : ''} 
+                ${gender ? ' Gender: ' + gender + ',' : ''} 
+                ${platform ? ' Platform: ' + platform + ',' : ''} 
+                ${dateRange ? ' Last ' + dateRange + ' days' : ''}
+                ${wellbeingAppOnly ? ' | Wellbeing App Users Only' : ''}
+                ${highStressOnly ? ' | High Stress Group' : ''}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // If sidebar is active on mobile, close it
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+                content.classList.remove('sidebar-active');
+            }
+            
+            // Add notification
+            const container = document.querySelector('.content .container-fluid');
+            container.insertBefore(notification, container.firstChild);
+            
+            // Auto dismiss after 5 seconds
+            setTimeout(function() {
+                notification.classList.remove('show');
+                setTimeout(function() {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 500);
+            }, 5000);
+            
+            // In a real implementation, we would fetch filtered data from the server
+            // For now, just simulate loading with a delay
+            setTimeout(function() {
+                // Refresh charts with "filtered" data (same data for demo)
+                refreshAllCharts();
+            }, 800);
+        });
+    });
+}
+
+// Reset filters button functionality
+const resetFiltersBtn = document.getElementById('resetFilters');
+if (resetFiltersBtn) {
+    resetFiltersBtn.addEventListener('click', function() {
+        // Reset all filter dropdowns
+        document.getElementById('jobTypeFilter').value = '';
+        document.getElementById('genderFilter').value = '';
+        document.getElementById('platformFilter').value = '';
+        document.getElementById('dateRangeFilter').value = '30';
+        document.getElementById('wellbeingAppFilter').checked = false;
+        document.getElementById('highStressFilter').checked = false;
+
+        // Show notification
+        const notification = document.createElement('div');
+        notification.className = 'alert alert-info alert-dismissible fade show';
+        notification.setAttribute('role', 'alert');
+        notification.innerHTML = `
+            <i class="fas fa-sync-alt me-2"></i>
+            <strong>Filters reset!</strong> Showing all data.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+
+        const container = document.querySelector('.content .container-fluid');
+        container.insertBefore(notification, container.firstChild);
+
+        // Auto dismiss after 3 seconds
+        setTimeout(function() {
+            notification.classList.remove('show');
+            setTimeout(function() {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 500);
+        }, 3000);
+
+        // Refresh all charts
+        refreshAllCharts();
+    });
+}
+
+// Function to refresh all charts with "filtered" data
+function refreshAllCharts() {
+    // Re-initialize all loading indicators
+    document.querySelectorAll('.chart-body').forEach(el => {
+        if (el.innerHTML.includes('chart-loading')) {
+            // Remove loading indicator
+            el.innerHTML = '';
+        }
+    });
+
+    // Re-fetch and re-render all charts
+    // For demo purposes, we'll just trigger all the initial fetch functions
+    // In a real application, we would pass filter parameters to the API calls
+    fetchAndRenderKPIs();
+    fetchAndRenderAllCharts();
+}
+
+// Global error handler for fetch operations
+window.addEventListener('error', function(e) {
+    console.error('Global error caught:', e.error);
+    document.querySelectorAll('.chart-body').forEach(el => {
+        if (el.querySelector('.chart-loading')) {
+            el.innerHTML = '<div class="text-center p-4" style="color: var(--dashboard3-secondary)">' +
+                '<i class="fas fa-exclamation-triangle mb-2" style="font-size: 24px;"></i>' +
+                '<p>Unable to load chart data. Please try refreshing the page.</p></div>';
+        }
+    });
+});
+
+// Add a wrapper function for KPI data fetching and rendering
+function fetchAndRenderKPIs() {
+    const filters = getActiveFilters();
+    console.log('Fetching KPI data');
+    fetch('/api/dashboard_metrics')
+        .then(response => response.json())
+        .then(data => {
+            console.log('KPI data received:', data);
+
+            if (data && data.length > 0) {
+                populateKPICards(data);
+            } else {
+                console.warn('No KPI data available, using sample data');
+                // Use sample data for robustness
+                const sampleData = generateSampleMetricsData();
+                populateKPICards(sampleData);
+            }
+        });
+}
+
+// Initialize charts when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM content loaded, initializing tactical dashboard...');
+
+    // Initial render with default filters
+    const defaultFilters = {
+        gender: 'all',
+        jobType: 'all',
+        ageGroup: 'all'
+    };
+
+    // Set up filter chips event listeners
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            const filterType = this.getAttribute('data-filter');
+            const value = this.getAttribute('data-value');
+
+            // Deactivate all chips of same filter type
+            document.querySelectorAll(`.filter-chip[data-filter="${filterType}"]`).forEach(c => {
+                c.classList.remove('active');
+            });
+
+            // Activate this chip
+            this.classList.add('active');
+
+            // Update filters and refresh charts
+            const newFilters = {
+                gender: filterType === 'gender' ? value : getActiveFilterValue('gender'),
+                jobType: filterType === 'job' ? value : getActiveFilterValue('job'),
+                ageGroup: filterType === 'age' ? value : getActiveFilterValue('age')
+            };
+
+            renderTacticalDashboardCharts(newFilters);
+        });
+    });
+
+    // Helper function to get active filter value
+    function getActiveFilterValue(filterType) {
+        const activeChip = document.querySelector(`.filter-chip[data-filter="${filterType}"].active`);
+        return activeChip ? activeChip.getAttribute('data-value') : 'all';
+    }
+
+    // Initialize all charts
+    renderTacticalDashboardCharts(defaultFilters);
+    fetchAndRenderKPIs();
+
+    // Export button functionality
+    const exportBtn = document.getElementById('csvExportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            exportTableToCSV('tactical-insights-table', 'tactical_insights_data.csv');
+        });
+    }
+});
+
+// Helper function to export table to CSV
+function exportTableToCSV(tableId, filename) {
+    const table = document.getElementById(tableId);
+    let csv = [];
+    const rows = table.querySelectorAll('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+        let row = [],
+            cols = rows[i].querySelectorAll('td, th');
+
+        for (let j = 0; j < cols.length; j++) {
+            // Replace any commas to avoid CSV formatting issues
+            let text = cols[j].innerText.replace(/,/g, ';');
+            // Add text in quotes to handle any special characters
+            row.push('"' + text + '"');
+        }
+
+        csv.push(row.join(','));
+    }
+
+    // Download CSV file
+    const csvString = csv.join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// Function to render all tactical dashboard charts
+function renderTacticalDashboardCharts(filters = {}) {
+    console.log('Rendering tactical dashboard charts with filters:', filters);
+
+    // Render all new chart types
+    renderStressBreaksBoxPlot(filters);
+    renderAgeProductivityScatter(filters);
+    renderSocialMediaJobBar(filters);
+    renderSleepBurnoutBubble(filters);
+
+    // Update insights panel based on filters
+    updateInsightsPanel(filters);
+}
+
+// Helper function to build URLs with filters
+function buildUrlWithFilters(baseUrl, filters) {
+    if (!filters) return baseUrl;
+
+    const params = [];
+    if (filters.gender && filters.gender !== 'all') params.push('gender=' + encodeURIComponent(filters.gender));
+    if (filters.jobType && filters.jobType !== 'all') params.push('job_type=' + encodeURIComponent(filters.jobType));
+    if (filters.ageGroup && filters.ageGroup !== 'all') params.push('age_group=' + encodeURIComponent(filters.ageGroup));
+
+    return baseUrl + (params.length ? '?' + params.join('&') : '');
+}
+
+// Wellbeing App Impact Chart
+function fetchWellbeingAppData(filters = {}) {
+    const chartElement = document.getElementById('wellbeingAppChart');
+    if (!chartElement) return;
+    
+    const url = buildUrlWithFilters('/api/wellbeing_app_impact', filters);
+    
+    // Show loading state
+    chartElement.innerHTML = '<div class="chart-loading"><i class="fas fa-spinner fa-spin"></i><span>Loading chart data...</span></div>';
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (!data || data.length === 0) {
+                // Render sample data if API returns no data
+                renderSampleWellbeingData(chartElement);
+                return;
+            }
+            
+            // Transform API data for chart
+            const categories = ['Productivity', 'Stress', 'Focus'];
+            const userValues = [];
+            const nonUserValues = [];
+            
+            categories.forEach(category => {
+                const categoryData = data.find(d => d.category.toLowerCase() === category.toLowerCase());
+                if (categoryData) {
+                    userValues.push(categoryData.app_user_score);
+                    nonUserValues.push(categoryData.non_app_user_score);
+                } else {
+                    userValues.push(0);
+                    nonUserValues.push(0);
+                }
+            });
+            
+            const traces = [
+                {
+                    x: categories,
+                    y: userValues,
+                    type: 'bar',
+                    name: 'Wellbeing App Users',
+                    marker: {
+                        color: colors.primary,
+                        line: {
+                            color: 'rgba(0,0,0,0.1)',
+                            width: 1
+                        }
+                    },
+                    hovertemplate: '<b>%{x}</b><br>Score: %{y}<extra>App Users</extra>'
+                },
+                {
+                    x: categories,
+                    y: nonUserValues,
+                    type: 'bar',
+                    name: 'Non-App Users',
+                    marker: {
+                        color: colors.secondary,
+                        line: {
+                            color: 'rgba(0,0,0,0.1)',
+                            width: 1
+                        }
+                    },
+                    hovertemplate: '<b>%{x}</b><br>Score: %{y}<extra>Non-App Users</extra>'
+                }
+            ];
+            
+            const layout = {
+                ...commonLayout,
+                title: {
+                    text: 'Wellbeing App Impact',
+                    font: {
+                        family: 'Inter, sans-serif',
+                        size: 16,
+                        color: colors.textMain
+                    }
+                },
+                xaxis: { title: 'Category' },
+                yaxis: { 
+                    title: 'Score',
+                    range: [0, 100]
+                },
+                barmode: 'group',
+                legend: {
+                    orientation: 'h',
+                    y: -0.2
+                }
+            };
+            
+            Plotly.newPlot(chartElement, traces, layout, chartConfig);
+        })
+        .catch(error => {
+            console.error('Error fetching wellbeing app data:', error);
+            renderSampleWellbeingData(chartElement);
+        });
+}
+
+// Function to render sample wellbeing data when API returns no data
+function renderSampleWellbeingData(chartElement) {
+    const sampleData = [
+        { category: 'Productivity', app_user_score: 78, non_app_user_score: 65 },
+        { category: 'Stress', app_user_score: 42, non_app_user_score: 68 },
+        { category: 'Focus', app_user_score: 82, non_app_user_score: 59 }
+    ];
+    
+    const categories = sampleData.map(d => d.category);
+    
+    const traces = [
+        {
+            x: categories,
+            y: sampleData.map(d => d.app_user_score),
+            type: 'bar',
+            name: 'Wellbeing App Users',
+            marker: {
+                color: colors.primary,
+                line: {
+                    color: 'rgba(0,0,0,0.1)',
+                    width: 1
+                }
+            },
+            hovertemplate: '<b>%{x}</b><br>Score: %{y}<extra>App Users</extra>'
+        },
+        {
+            x: categories,
+            y: sampleData.map(d => d.non_app_user_score),
+            type: 'bar',
+            name: 'Non-App Users',
+            marker: {
+                color: colors.secondary,
+                line: {
+                    color: 'rgba(0,0,0,0.1)',
+                    width: 1
+                }
+            },
+            hovertemplate: '<b>%{x}</b><br>Score: %{y}<extra>Non-App Users</extra>'
+        }
+    ];
+    
+    const layout = {
+        ...commonLayout,
+        title: {
+            text: 'Wellbeing App Impact (Sample Data)',
+            font: {
+                family: 'Inter, sans-serif',
+                size: 16,
+                color: colors.textMain
+            }
+        },
+        xaxis: { title: 'Category' },
+        yaxis: { 
+            title: 'Score',
+            range: [0, 100]
+        },
+        barmode: 'group',
+        legend: {
+            orientation: 'h',
+            y: -0.2
+        }
+    };
+    
+    Plotly.newPlot(chartElement, traces, layout, chartConfig);
+}
+    
+    // Breaks vs Stress Level Chart
+    function fetchBreaksVsStress(filters = {}) {
+        const chartElement = document.getElementById('breaksStressChart');
+        if (!chartElement) return;
+        
+        const url = buildUrlWithFilters('/api/breaks_vs_stress', filters);
+        
+        // Show loading state
+        chartElement.innerHTML = '<div class="chart-loading"><i class="fas fa-spinner fa-spin"></i><span>Loading chart data...</span></div>';
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    renderSampleBreaksVsStress(chartElement);
+                    return;
+                }
+                
+                const traces = [{
+                    x: data.map(d => d.breaks_per_day),
+                    y: data.map(d => d.stress_level),
+                    mode: 'markers',
+                    type: 'scatter',
+                    text: data.map(d => `Productivity: ${d.productivity_score}`),
+                    marker: {
+                        size: data.map(d => d.productivity_score / 10),
+                        color: data.map(d => d.productivity_score),
+                        colorscale: [
+                            [0, colors.danger],
+                            [0.5, colors.warning],
+                            [1, colors.success]
+                        ],
+                        colorbar: {
+                            title: 'Productivity',
+                            titleside: 'right',
+                            titlefont: {
+                                family: 'IBM Plex Sans, sans-serif',
+                                size: 12
+                            }
+                        },
+                        line: {
+                            width: 1,
+                            color: 'rgba(0,0,0,0.2)'
+                        }
+                    },
+                    hovertemplate: '<b>Breaks:</b> %{x} per day<br><b>Stress:</b> %{y}%<br>%{text}<extra></extra>'
+                }];
+                
+                const layout = {
+                    ...commonLayout,
+                    title: {
+                        text: 'Breaks vs Stress Level',
+                        font: {
+                            family: 'Inter, sans-serif',
+                            size: 16,
+                            color: colors.textMain
+                        }
+                    },
+                    xaxis: { 
+                        title: 'Breaks Per Day',
+                        range: [0, Math.max(...data.map(d => d.breaks_per_day)) * 1.1]
+                    },
+                    yaxis: { 
+                        title: 'Stress Level (%)',
+                        range: [0, 100]
+                    }
+                };
+                
+                Plotly.newPlot(chartElement, traces, layout, chartConfig);
+            })
+            .catch(error => {
+                console.error('Error fetching breaks vs stress data:', error);
+                renderSampleBreaksVsStress(chartElement);
+            });
+    }
+    
+    // Function to render sample breaks vs stress data when API returns no data
+    function renderSampleBreaksVsStress(chartElement) {
+        const sampleData = [
+            { breaks_per_day: 1, stress_level: 85, productivity_score: 45 },
+            { breaks_per_day: 2, stress_level: 70, productivity_score: 58 },
+            { breaks_per_day: 3, stress_level: 60, productivity_score: 65 },
+            { breaks_per_day: 4, stress_level: 45, productivity_score: 72 },
+            { breaks_per_day: 5, stress_level: 40, productivity_score: 80 },
+            { breaks_per_day: 6, stress_level: 35, productivity_score: 82 },
+            { breaks_per_day: 7, stress_level: 30, productivity_score: 85 },
+            { breaks_per_day: 8, stress_level: 25, productivity_score: 88 },
+            { breaks_per_day: 2, stress_level: 65, productivity_score: 60 },
+            { breaks_per_day: 3, stress_level: 55, productivity_score: 68 },
+            { breaks_per_day: 4, stress_level: 50, productivity_score: 75 },
+            { breaks_per_day: 5, stress_level: 40, productivity_score: 78 },
+            { breaks_per_day: 6, stress_level: 30, productivity_score: 84 }
+        ];
+        
+        const traces = [{
+            x: sampleData.map(d => d.breaks_per_day),
+            y: sampleData.map(d => d.stress_level),
+            mode: 'markers',
+            type: 'scatter',
+            text: sampleData.map(d => `Productivity: ${d.productivity_score}`),
+            marker: {
+                size: sampleData.map(d => d.productivity_score / 10),
+                color: sampleData.map(d => d.productivity_score),
+                colorscale: [
+                    [0, colors.danger],
+                    [0.5, colors.warning],
+                    [1, colors.success]
+                ],
+                colorbar: {
+                    title: 'Productivity',
+                    titleside: 'right',
+                    titlefont: {
+                        family: 'Inter, sans-serif',
+                        size: 12
+                    }
+                },
+                line: {
+                    width: 1,
+                    color: 'rgba(0,0,0,0.2)'
+                }
+            },
+            hovertemplate: '<b>Breaks:</b> %{x} per day<br><b>Stress:</b> %{y}%<br>%{text}<extra></extra>'
+        }];
+        
+        const layout = {
+            ...commonLayout,
+            title: {
+                text: 'Breaks vs Stress Level (Sample Data)',
+                font: {
+                    family: 'Inter, sans-serif',
+                    size: 16,
+                    color: colors.textMain
+                }
+            },
+            xaxis: { 
+                title: 'Breaks Per Day',
+                range: [0, 9]
+            },
+            yaxis: { 
+                title: 'Stress Level (%)',
+                range: [0, 100]
+            }
+        };
+        
+        Plotly.newPlot(chartElement, traces, layout, chartConfig);
+    }
+    
+    // Define common chart configuration for new analytical style
+    const chartConfig = {
+        responsive: true,
+        displayModeBar: false,
+        font: {
+            family: "IBM Plex Sans, sans-serif",
+            size: 12,
+            color: "#2B2D42"
+        },
+        colorway: ["#7209B7", "#4361EE", "#4CC9F0", "#560BAD", "#F72585", "#3A0CA3"],
+        staticPlot: false,
+        showLink: false,
+        toImageButtonOptions: {
+            format: 'png', 
+            filename: 'chart',
+            height: 500,
+            width: 700,
+            scale: 2
+        },
+        modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'autoScale2d', 'toggleSpikelines']
+    };
+
+    const colors = {
+        primary: '#4361ee',
+        secondary: '#3f37c9',
+        success: '#4cc9f0',
+        warning: '#f8961e',
+        danger: '#f72585',
+        textMain: '#2d3748',
+        textSecondary: '#718096'
+    };
+
+    const fontSettings = {
+        family: 'Inter, sans-serif',
+        size: 14
+    };
+
+    const commonLayout = {
+        font: fontSettings,
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        margin: { t: 50, r: 30, b: 80, l: 60 },
+        hoverlabel: {
+            bgcolor: "#FFF",
+            font: { family: 'Inter, sans-serif', size: 12 },
+            bordercolor: "#DDD"
+        }
+    };
+
+    // Platform Usage Time Chart
+    function fetchPlatformUsageTime(filters = {}) {
+        const chartElement = document.getElementById('platformUsageChart');
+        if (!chartElement) return;
+        
+        const url = buildUrlWithFilters('/api/platform_usage_time', filters);
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    // Render sample data if API returns no data
+                    renderSamplePlatformUsage(chartElement);
+                    return;
+                }
+                
+                // Transform API data for the chart
+                const platforms = data.map(d => d.platform);
+                const minutes = data.map(d => d.minutes);
+                
+                const trace = {
+                    x: platforms,
+                    y: minutes,
+                    type: 'bar',
+                    marker: {
+                        color: minutes.map(m => m > 60 ? colors.warning : colors.success),
+                        line: {
+                            width: 1,
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    hovertemplate: '<b>%{x}</b><br>%{y} minutes per day<extra></extra>'
+                };
+                
+                const layout = {
+                    ...commonLayout,
+                    title: {
+                        text: 'Platform Usage Time',
+                        font: {
+                            family: 'Inter, sans-serif',
+                            size: 16,
+                            color: colors.textMain
+                        }
+                    },
+                    xaxis: { title: 'Platform' },
+                    yaxis: { 
+                        title: 'Average Minutes per Day',
+                        range: [0, Math.max(...minutes) * 1.2]
+                    }
+                };
+                
+                Plotly.newPlot(chartElement, [trace], layout, chartConfig);
+            })
+            .catch(error => {
+                console.error('Error fetching platform usage data:', error);
+                renderSamplePlatformUsage(chartElement);
+            });
+    }
+        
+    // Function to render sample platform usage data when API returns no data
+    function renderSamplePlatformUsage(chartElement) {
+        const sampleData = [
+            { platform: 'Instagram', minutes: 65 },
+            { platform: 'Twitter', minutes: 45 },
+            { platform: 'Facebook', minutes: 38 },
+            { platform: 'LinkedIn', minutes: 27 },
+            { platform: 'TikTok', minutes: 56 },
+            { platform: 'YouTube', minutes: 79 }
+        ];
+        
+        const trace = {
+            x: sampleData.map(d => d.platform),
+            y: sampleData.map(d => d.minutes),
+            type: 'bar',
+            marker: {
+                color: sampleData.map(d => d.minutes > 60 ? colors.warning : colors.success),
+                line: {
+                    width: 1,
+                    color: 'rgba(0,0,0,0.1)'
+                }
+            },
+            hovertemplate: '<b>%{x}</b><br>%{y} minutes per day<extra></extra>'
+        };
+        
+        const layout = {
+            ...commonLayout,
+            title: {
+                text: 'Platform Usage Time (Sample Data)',
+                font: {
+                    family: 'Inter, sans-serif',
+                    size: 16,
+                    color: colors.textMain
+                }
+            },
+            xaxis: { title: 'Platform' },
+            yaxis: {
+                title: 'Average Minutes per Day',
+                range: [0, 100]
+            }
+        };
+        
+        Plotly.newPlot(chartElement, [trace], layout, chartConfig);
+    }
+        
+    // Sleep Hours vs Productivity Chart
+    function fetchSleepProductivity(filters = {}) {
+        const chartElement = document.getElementById('sleepProductivityChart');
+        if (!chartElement) return;
+        
+        const url = buildUrlWithFilters('/api/sleep_productivity', filters);
+        
+        // Show loading state
+        chartElement.innerHTML = '<div class="chart-loading"><i class="fas fa-spinner fa-spin"></i><span>Loading chart data...</span></div>';
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    renderSampleSleepProductivity(chartElement);
+                    return;
+                }
+                
+                const traces = [{
+                    x: data.map(d => d.sleep_hours),
+                    y: data.map(d => d.productivity_score),
+                    mode: 'markers',
+                    type: 'scatter',
+                    marker: {
+                        size: 10,
+                        color: data.map(d => d.productivity_score),
+                        colorscale: [
+                            [0, colors.danger],
+                            [0.5, colors.warning],
+                            [1, colors.success]
+                        ],
+                        line: {
+                            width: 1,
+                            color: 'rgba(0,0,0,0.2)'
+                        }
+                    },
+                    hovertemplate: '<b>Sleep:</b> %{x} hours<br><b>Productivity:</b> %{y}<extra></extra>'
+                }];
+                
+                // Add trendline using linear regression
+                if (data.length > 2) {
+                    const x = data.map(d => d.sleep_hours);
+                    const y = data.map(d => d.productivity_score);
+                    
+                    // Calculate linear regression
+                    const n = x.length;
+                    const sum_x = x.reduce((a, b) => a + b, 0);
+                    const sum_y = y.reduce((a, b) => a + b, 0);
+                    const sum_xy = x.map((xi, i) => xi * y[i]).reduce((a, b) => a + b, 0);
+                    const sum_xx = x.map(xi => xi * xi).reduce((a, b) => a + b, 0);
+                    
+                    const slope = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x * sum_x);
+                    const intercept = (sum_y - slope * sum_x) / n;
+                    
+                    // Generate trendline points
+                    const x_min = Math.min(...x);
+                    const x_max = Math.max(...x);
+                    const x_trend = [x_min, x_max];
+                    const y_trend = x_trend.map(xi => slope * xi + intercept);
+                    
+                    // Add trendline trace
+                    traces.push({
+                        x: x_trend,
+                        y: y_trend,
+                        mode: 'lines',
+                        type: 'scatter',
+                        line: {
+                            color: colors.primary,
+                            width: 2,
+                            dash: 'dash'
+                        },
+                        name: 'Trend',
+                        hovertemplate: 'Trend<extra></extra>'
+                    });
+                }
+                
+                const layout = {
+                    ...commonLayout,
+                    title: {
+                        text: 'Sleep Hours vs Productivity',
+                        font: {
+                            family: 'Inter, sans-serif',
+                            size: 16,
+                            color: colors.textMain
+                        }
+                    },
+                    xaxis: {
+                        title: 'Sleep Hours',
+                        range: [0, Math.max(10, Math.max(...data.map(d => d.sleep_hours)) * 1.1)]
+                    },
+                    yaxis: {
+                        title: 'Productivity Score',
+                        range: [0, 100]
+                    },
+                    showlegend: false
+                };
+                
+                Plotly.newPlot(chartElement, traces, layout, chartConfig);
+            })
+            .catch(error => {
+                console.error('Error fetching sleep productivity data:', error);
+                renderSampleSleepProductivity(chartElement);
+            });
+    }
+    
+    // Function to render sample sleep productivity data when API returns no data
+    function renderSampleSleepProductivity(chartElement) {
+        const sampleData = [
+            { sleep_hours: 4, productivity_score: 45 },
+            { sleep_hours: 5, productivity_score: 55 },
+            { sleep_hours: 6, productivity_score: 65 },
+            { sleep_hours: 7, productivity_score: 78 },
+            { sleep_hours: 8, productivity_score: 85 },
+            { sleep_hours: 9, productivity_score: 82 },
+            { sleep_hours: 5.5, productivity_score: 60 },
+            { sleep_hours: 6.5, productivity_score: 70 },
+            { sleep_hours: 7.5, productivity_score: 80 },
+            { sleep_hours: 8.5, productivity_score: 83 },
+            { sleep_hours: 6, productivity_score: 68 },
+            { sleep_hours: 7, productivity_score: 75 },
+            { sleep_hours: 8, productivity_score: 88 }
+        ];
+        
+        const traces = [{
+            x: sampleData.map(d => d.sleep_hours),
+            y: sampleData.map(d => d.productivity_score),
+            mode: 'markers',
+            type: 'scatter',
+            marker: {
+                size: 10,
+                color: sampleData.map(d => d.productivity_score),
+                colorscale: [
+                    [0, colors.danger],
+                    [0.5, colors.warning],
+                    [1, colors.success]
+                ],
+                line: {
+                    width: 1,
+                    color: 'rgba(0,0,0,0.2)'
+                }
+            },
+            hovertemplate: '<b>Sleep:</b> %{x} hours<br><b>Productivity:</b> %{y}<extra></extra>'
+        }];
+        
+        // Add trendline
+        traces.push({
+            x: [4, 9],
+            y: [45, 85],
+            mode: 'lines',
+            type: 'scatter',
+            line: {
+                color: colors.primary,
+                width: 2,
+                dash: 'dash'
+            },
+            name: 'Trend',
+            hovertemplate: 'Trend<extra></extra>'
+        });
+        
+        const layout = {
+            ...commonLayout,
+            title: {
+                text: 'Sleep Hours vs Productivity (Sample Data)',
+                font: {
+                    family: 'Inter, sans-serif',
+                    size: 16,
+                    color: colors.textMain
+                }
+            },
+            xaxis: {
+                title: 'Sleep Hours',
+                range: [0, 10]
+            },
+            yaxis: {
+                title: 'Productivity Score',
+                range: [0, 100]
+            },
+            showlegend: false
+        };
+        
+        Plotly.newPlot(chartElement, traces, layout, chartConfig);
+    }
+    
+    // Function to fetch correlation heatmap data
+    function fetchCorrelationData(filters = {}) {
+        const chartElement = document.getElementById('correlationChart');
+        if (!chartElement) return;
+        
+        // For now using sample data since we don't have a specific endpoint for this yet
+        setTimeout(() => {
+            // Sample correlation matrix
+            const correlationMatrix = [
+                [1.0, -0.7, -0.5, 0.6, 0.3],
+                [-0.7, 1.0, 0.4, -0.5, -0.2],
+                [-0.5, 0.4, 1.0, -0.3, -0.6],
+                [0.6, -0.5, -0.3, 1.0, 0.4],
+                [0.3, -0.2, -0.6, 0.4, 1.0]
+            ];
+            
+            const labels = ['Productivity', 'Stress', 'Screen Time', 'Sleep', 'Breaks'];
+            
+            // Create the heatmap trace
+            const trace = {
+                z: correlationMatrix,
+                x: labels,
+                y: labels,
+                type: 'heatmap',
+                colorscale: [
+                    [0, '#4a5568'],
+                    [0.3, '#2c5282'],
+                    [0.5, '#2b6cb0'],
+                    [0.7, '#3182ce'],
+                    [0.9, '#90cdf4'],
+                    [1, '#ebf8ff']
+                ],
+                showscale: true,
+                colorbar: {
+                    titleside: 'right',
+                    title: 'Correlation',
+                    titlefont: {
+                        size: 12,
+                        family: 'Inter, sans-serif',
+                        color: colors.textMain
+                    },
+                    tickfont: {
+                        family: 'Inter, sans-serif',
+                        size: 10,
+                        color: colors.textSecondary
+                    }
+                },
+                hoverinfo: 'text',
+                text: correlationMatrix.map((row, i) => {
+                    return row.map((val, j) => {
+                        return `${labels[i]} to ${labels[j]}: ${val.toFixed(2)}`;
+                    });
+                })
+            };
+            
+            const layout = {
+                ...commonLayout,
+                title: {
+                    text: 'Correlation Matrix',
+                    font: {
+                        family: 'Inter, sans-serif',
+                        size: 16,
+                        color: colors.textMain
+                    }
+                },
+                annotations: [{
+                    text: "Darker = stronger correlation",
+                    showarrow: false,
+                    x: 0.5,
+                    y: 1.1,
+                    "xref": "paper",
+                    "yref": "paper",
+                    font: {size: 10, color: colors.textSecondary}
+                }],
+                margin: {l: 50, r: 50, b: 50, t: 50, pad: 4},
+                xaxis: {
+                    tickfont: {family: 'Inter, sans-serif', color: colors.textSecondary}
+                },
+                yaxis: {
+                    tickfont: {family: 'Inter, sans-serif', color: colors.textSecondary}
+                }
+            };
+            
+            Plotly.newPlot(chartElement, [trace], layout, chartConfig);
+        }, 800);
+    }
+
+function fetchRecommendations() {
+    const element = document.getElementById('actionRecommendations');
+    if (!element) return;
+    
+    setTimeout(() => {
+        element.innerHTML = `
+        <ul class="list-unstyled">
+            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Schedule regular 15-minute breaks every 2 hours</li>
+            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Limit social media to 60 minutes per day for optimal productivity</li>
+            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Turn off non-essential notifications during deep work periods</li>
+            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Ensure 7-8 hours of sleep for maximum productivity</li>
+        </ul>
+        `;
+    }, 400);
+}
+
+// Box Plot: Stress vs Break Frequency
+function renderStressBreaksBoxPlot(filters = {}) {
+    const chartElement = document.getElementById('stressBreaksBoxPlot');
+    
+    // Show loading state
+    chartElement.querySelector('.loading-spinner').style.display = 'flex';
+    
+    // This would normally fetch from API
+    // For now, using sample data
+    setTimeout(() => {
+        const data = [
+            {
+                type: 'box',
+                name: 'Male',
+                y: [5.1, 6.3, 7.2, 8.4, 9.2],
+                boxpoints: 'all',
+                jitter: 0.3,
+                pointpos: -1.8,
+                marker: {color: '#7209B7'},
+                boxmean: true,
+                x: ['0-1', '2-3', '4-5', '6+'],
+                hovertemplate: 'Stress Level: %{y}<br>Breaks per day: %{x}<extra></extra>'
+            },
+            {
+                type: 'box',
+                name: 'Female',
+                y: [4.8, 5.9, 6.7, 7.9, 8.5],
+                boxpoints: 'all',
+                jitter: 0.3,
+                pointpos: -1.8,
+                marker: {color: '#4361EE'},
+                boxmean: true,
+                x: ['0-1', '2-3', '4-5', '6+'],
+                hovertemplate: 'Stress Level: %{y}<br>Breaks per day: %{x}<extra></extra>'
+            }
+        ];
+        
+        const layout = {
+            title: '',
+            height: 320,
+            margin: {l: 50, r: 30, b: 50, t: 30, pad: 4},
+            font: chartConfig.font,
+            xaxis: {
+                title: 'Number of Screen Breaks per Day',
+                tickfont: {family: 'Roboto Mono, monospace', size: 11}
+            },
+            yaxis: {
+                title: 'Stress Level (1-10)',
+                zeroline: false,
+                tickfont: {family: 'Roboto Mono, monospace', size: 11}
+            },
+            boxmode: 'group',
+            colorway: chartConfig.colorway,
+            legend: {
+                orientation: 'h',
+                y: -0.2
+            },
+            hovermode: 'closest'
+        };
+        
+        // Hide loading
+        chartElement.querySelector('.loading-spinner').style.display = 'none';
+        
+        // Render chart
+        Plotly.newPlot(chartElement, data, layout, {displayModeBar: false, responsive: true});
+    }, 800);
+}
+
+// Scatter Plot: Age vs Productivity Score
+function renderAgeProductivityScatter(filters = {}) {
+    const chartElement = document.getElementById('ageProductivityScatter');
+    
+    // Show loading state
+    chartElement.querySelector('.loading-spinner').style.display = 'flex';
+    
+    // This would normally fetch from API
+    setTimeout(() => {
+        const ages = [22, 24, 25, 27, 29, 31, 32, 34, 36, 38, 39, 42, 45, 47, 49, 52, 54, 56, 59];
+        const productivity = [6.2, 6.4, 6.7, 7.0, 7.2, 7.4, 7.5, 7.6, 7.7, 7.8, 7.7, 7.6, 7.5, 7.3, 7.2, 7.0, 6.9, 6.8, 6.7];
+        const jobTypes = ['Technical', 'Creative', 'Technical', 'Administrative', 'Management', 'Technical', 'Creative', 'Management', 'Technical', 'Creative', 'Management', 'Administrative', 'Management', 'Technical', 'Creative', 'Management', 'Administrative', 'Technical', 'Management'];
+        
+        // Calculate trendline
+        const xSum = ages.reduce((a, b) => a + b, 0);
+        const ySum = productivity.reduce((a, b) => a + b, 0);
+        const xySum = ages.map((x, i) => x * productivity[i]).reduce((a, b) => a + b, 0);
+        const xSquaredSum = ages.map(x => x * x).reduce((a, b) => a + b, 0);
+        const n = ages.length;
+        
+        const slope = (n * xySum - xSum * ySum) / (n * xSquaredSum - xSum * xSum);
+        const intercept = (ySum - slope * xSum) / n;
+        
+        const trendlineX = [Math.min(...ages), Math.max(...ages)];
+        const trendlineY = trendlineX.map(x => slope * x + intercept);
+        
+        // Color mapping for job types
+        const colorMap = {
+            'Technical': '#7209B7',
+            'Creative': '#4361EE',
+            'Management': '#4CC9F0',
+            'Administrative': '#560BAD'
+        };
+        
+        const colors = jobTypes.map(job => colorMap[job]);
+        
+        const data = [
+            {
+                x: ages,
+                y: productivity,
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                    size: 12,
+                    color: colors,
+                    opacity: 0.8,
+                    line: {
+                        color: 'white',
+                        width: 1
+                    }
+                },
+                text: jobTypes,
+                hovertemplate: 'Age: %{x}<br>Productivity: %{y}<br>Job: %{text}<extra></extra>'
+            },
+            {
+                x: trendlineX,
+                y: trendlineY,
+                mode: 'lines',
+                type: 'scatter',
+                line: {
+                    color: '#F72585',
+                    dash: 'dash',
+                    width: 2
+                },
+                name: 'Trend',
+                hoverinfo: 'skip'
+            }
+        ];
+        
+        const layout = {
+            title: '',
+            height: 320,
+            margin: {l: 50, r: 30, b: 50, t: 30, pad: 4},
+            font: chartConfig.font,
+            xaxis: {
+                title: 'Age',
+                zeroline: false,
+                tickfont: {family: 'Roboto Mono, monospace', size: 11}
+            },
+            yaxis: {
+                title: 'Productivity Score',
+                zeroline: false,
+                range: [5, 8.5],
+                tickfont: {family: 'Roboto Mono, monospace', size: 11}
+            },
+            showlegend: false,
+            hovermode: 'closest'
+        };
+        
+        // Hide loading
+        chartElement.querySelector('.loading-spinner').style.display = 'none';
+        
+        // Render chart
+        Plotly.newPlot(chartElement, data, layout, {displayModeBar: false, responsive: true});
+    }, 800);
+}
+
+// Clustered Bar: Social Media Time by Job Type
+function renderSocialMediaJobBar(filters = {}) {
+    const chartElement = document.getElementById('socialMediaJobBar');
+    
+    // Show loading state
+    chartElement.querySelector('.loading-spinner').style.display = 'flex';
+    
+    // This would normally fetch from API
+    setTimeout(() => {
+        const data = [
+            {
+                x: ['Technical', 'Creative', 'Management', 'Administrative'],
+                y: [34, 45, 28, 32],
+                name: 'Instagram',
+                type: 'bar',
+                marker: {color: '#7209B7'}
+            },
+            {
+                x: ['Technical', 'Creative', 'Management', 'Administrative'],
+                y: [28, 32, 22, 25],
+                name: 'Twitter',
+                type: 'bar',
+                marker: {color: '#4361EE'}
+            },
+            {
+                x: ['Technical', 'Creative', 'Management', 'Administrative'],
+                y: [16, 17, 15, 15],
+                name: 'Facebook',
+                type: 'bar',
+                marker: {color: '#4CC9F0'}
+            }
+        ];
+        
+        const layout = {
+            title: '',
+            height: 320,
+            margin: {l: 50, r: 30, b: 80, t: 30, pad: 4},
+            font: chartConfig.font,
+            barmode: 'group',
+            bargap: 0.15,
+            bargroupgap: 0.1,
+            xaxis: {
+                title: 'Job Type',
+                tickfont: {family: 'Roboto Mono, monospace', size: 11}
+            },
+            yaxis: {
+                title: 'Average Minutes per Day',
+                zeroline: false,
+                tickfont: {family: 'Roboto Mono, monospace', size: 11}
+            },
+            colorway: chartConfig.colorway,
+            legend: {
+                orientation: 'h',
+                y: -0.2,
+                x: 0.1
+            },
+            hovermode: 'closest'
+        };
+        
+        // Hide loading
+        chartElement.querySelector('.loading-spinner').style.display = 'none';
+        
+        // Render chart
+        Plotly.newPlot(chartElement, data, layout, {displayModeBar: false, responsive: true});
+    }, 800);
+}
+
+// Bubble Chart: Sleep Hours vs Burnout Days
+function renderSleepBurnoutBubble(filters = {}) {
+    const chartElement = document.getElementById('sleepBurnoutBubble');
+    
+    // Show loading state
+    chartElement.querySelector('.loading-spinner').style.display = 'flex';
+    
+    // This would normally fetch from API
+    setTimeout(() => {
+        const jobTypes = ['Technical', 'Technical', 'Creative', 'Creative', 'Management', 'Management', 'Administrative', 'Administrative'];
+        const sleepHours = [5.8, 6.4, 6.7, 7.2, 6.1, 6.5, 7.0, 7.4];
+        const burnoutDays = [9.2, 8.4, 7.8, 6.9, 8.3, 7.5, 6.2, 5.6];
+        const stressLevels = [7.2, 6.8, 6.5, 6.0, 8.1, 7.4, 5.9, 5.2];
+        
+        // Color mapping for job types
+        const colorMap = {
+            'Technical': '#7209B7',
+            'Creative': '#4361EE',
+            'Management': '#4CC9F0',
+            'Administrative': '#560BAD'
+        };
+        
+        const colors = jobTypes.map(job => colorMap[job]);
+        
+        const data = [{
+            x: sleepHours,
+            y: burnoutDays,
+            mode: 'markers',
+            type: 'scatter',
+            marker: {
+                size: stressLevels.map(s => s * 4), // Scale stress levels for bubble size
+                color: colors,
+                opacity: 0.7,
+                line: {
+                    color: 'white',
+                    width: 1
+                }
+            },
+            text: jobTypes.map((job, i) => `${job}<br>Stress: ${stressLevels[i]}`),
+            hovertemplate: 'Sleep: %{x} hrs<br>Burnout: %{y} days/month<br>%{text}<extra></extra>'
+        }];
+        
+        const layout = {
+            title: '',
+            height: 320,
+            margin: {l: 50, r: 30, b: 50, t: 30, pad: 4},
+            font: chartConfig.font,
+            xaxis: {
+                title: 'Average Sleep Hours',
+                zeroline: false,
+                range: [5.5, 7.5],
+                tickfont: {family: 'Roboto Mono, monospace', size: 11}
+            },
+            yaxis: {
+                title: 'Burnout Days per Month',
+                zeroline: false,
+                range: [5, 10],
+                tickfont: {family: 'Roboto Mono, monospace', size: 11}
+            },
+            showlegend: false,
+            hovermode: 'closest'
+        };
+        
+        // Hide loading
+        chartElement.querySelector('.loading-spinner').style.display = 'none';
+        
+        // Render chart
+        Plotly.newPlot(chartElement, data, layout, {displayModeBar: false, responsive: true});
+    }, 800);
+}
+
+// Function to update the insights panel based on filters
+function updateInsightsPanel(filters) {
+    // This would normally update based on actual data
+    // For now, just display static insights
+    console.log('Updating insights panel with filters:', filters);
+}
+
+// Add chart animations and interactivity
+// We're using CSS transitions for animations instead of JavaScript
+// This provides better performance and smoother transitions
+// The hover effects are handled by CSS :hover pseudo-classes
+</script>
+{% endblock %}

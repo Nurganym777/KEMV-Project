@@ -1,0 +1,576 @@
+{% extends 'base.html' %}
+
+{% block title %}Strategic Dashboard{% endblock %}
+{% block dashboard1_active %}active{% endblock %}
+
+{% block additional_head %}
+<style>
+:root {
+    --dashboard1-primary: #3465A4;
+    --dashboard1-secondary: #72A0CF;
+}
+
+/* Global dashboard styles */
+body {
+    background-color: #f8fbff;
+}
+
+/* Section styling */
+.section-header h2 {
+    color: var(--dashboard1-primary);
+    border-bottom: 2px solid var(--dashboard1-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Card styling */
+.card {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 2px solid var(--dashboard1-secondary);
+}
+
+.card-title {
+    color: var(--dashboard1-primary);
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+/* Summary cards */
+.summary-card {
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.summary-card:hover {
+    transform: translateY(-5px);
+}
+
+.summary-card .card-body {
+    padding: 1.5rem;
+}
+
+.summary-card i {
+    font-size: 2rem;
+    color: var(--dashboard1-primary);
+    margin-bottom: 1rem;
+}
+
+.summary-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--dashboard1-primary);
+    margin-bottom: 0.5rem;
+}
+
+.summary-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+/* Chart containers */
+.chart-container {
+    min-height: 300px;
+    position: relative;
+}
+
+/* Section specific styling */
+.context-section {
+    margin-bottom: 2rem;
+}
+
+.main-point-section {
+    margin-bottom: 2rem;
+}
+
+.deep-dive-section {
+    margin-bottom: 2rem;
+}
+
+/* Table styling */
+.table thead th {
+    background-color: var(--dashboard1-secondary);
+    color: white;
+    border: none;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(114, 160, 207, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Context Section -->
+    <section class="context-section mb-4">
+        <div class="context-header">
+        <h2><i class="fas fa-chess-king me-2"></i>Strategic View: Social Media Impact on Wellbeing</h2>
+        <p class="lead text-muted">
+            <strong>Focus:</strong> Understand long-term risks and policy needs<br>
+            <strong>Target Audience:</strong> Company HR managers, government mental health teams
+        </p>
+        </div>
+        
+        <!-- Summary Cards Row -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <i class="fas fa-clock"></i>
+                        <h3 class="summary-value" id="totalUsageValue">0</h3>
+                        <p class="summary-label">Avg. Daily Screen Time</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <i class="fas fa-smile"></i>
+                        <h3 class="summary-value" id="avgSatisfactionValue">0</h3>
+                        <p class="summary-label">Avg. Job Satisfaction Score</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <i class="fas fa-bullseye"></i>
+                        <h3 class="summary-value">42%</h3>
+                        <p class="summary-label">% Using Focus Apps</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <i class="fas fa-users"></i>
+                        <h3 class="summary-value">450</h3>
+                        <p class="summary-label">Total Users</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+        <!-- Main Point Section (4 charts) -->
+        <section class="main-point-section mb-4">
+            <div class="section-header">
+            <h2><i class="fas fa-chart-line me-2"></i>Main Point</h2>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Productivity Score by Age</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <div class="chart-wrapper" id="productivityByAgeChart" style="width: 100%; height: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Platform Preference Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <div class="chart-wrapper" id="pieChart" style="width: 100%; height: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Stress Level vs Screen Time</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <div class="chart-wrapper" id="heatmapChart" style="width: 100%; height: 100%;"></div>
+                            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Job Type vs Burnout Days vs Stress Heatmap</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <div class="chart-wrapper" id="matrixChart" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Deep Dive Section -->
+    <section class="deep-dive-section mb-4">
+        <div class="section-header">
+            <h2><i class="fas fa-microscope me-2"></i>Deep Dive Analysis</h2>
+        </div>
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Platform Performance KPIs</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Platform</th>
+                                        <th>Daily Usage (mins)</th>
+                                        <th>Stress Impact Score</th>
+                                        <th>Productivity Impact Score</th>
+                                        <th>User Satisfaction</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="platformKpiTable">
+                                    <!-- Data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Common chart config
+    const chartConfig = {
+        responsive: true,
+        displayModeBar: false,
+        toImageButtonOptions: {
+            format: 'png',
+            filename: 'chart',
+            height: 500,
+            width: 700
+        },
+        modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d']
+    };
+    
+    // Common color palette - from CSS variables
+    const colors = {
+        primary: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#5c80bc',
+        secondary: getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim() || '#a594c1',
+        accent1: getComputedStyle(document.documentElement).getPropertyValue('--accent-1').trim() || '#4dc0b5',
+        accent2: getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#9be3de',
+        accent3: getComputedStyle(document.documentElement).getPropertyValue('--accent-3').trim() || '#cee5d5',
+        textMain: getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim() || '#424242',
+        textSecondary: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#757575'
+    };
+    
+    // Common font settings
+    const fontSettings = {
+        family: "'Nunito', 'Segoe UI', sans-serif",
+        size: 12,
+        color: colors.textMain
+    };
+    
+    // Fetch data for context section metrics
+    fetch('/api/strategic_metrics')
+        .then(response => response.json())
+        .then(data => {
+            // Update the summary cards
+            document.getElementById('totalUsageValue').textContent = data.avg_social_media_time.toFixed(1);
+            document.getElementById('avgSatisfactionValue').textContent = data.avg_satisfaction.toFixed(1);
+        });
+    
+    // Fetch data for productivity by age line chart
+    fetch('/api/productivity_by_age')
+        .then(response => response.json())
+        .then(data => {
+            const ages = data.map(d => d.age);
+            const scores = data.map(d => d.avg_score);
+            
+            const lineData = {
+                x: ages,
+                y: scores,
+                mode: 'lines+markers',
+                type: 'scatter',
+                name: 'Productivity Score',
+                line: {
+                    shape: 'spline',
+                    color: colors.primary,
+                    width: 3
+                },
+                marker: {
+                    size: 8,
+                    color: colors.accent1
+                }
+            };
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                xaxis: {
+                    title: 'Age',
+                    gridcolor: '#eee'
+                },
+                yaxis: {
+                    title: 'Productivity Score',
+                    gridcolor: '#eee'
+                },
+                margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('productivityByAgeChart', [lineData], layout, chartConfig);
+        });
+    
+    // Fetch data for pie chart (platform preference)
+    fetch('/api/platform_preference')
+        .then(response => response.json())
+        .then(data => {
+            const platforms = data.map(d => d.social_platform_preference);
+            const counts = data.map(d => d.count);
+            
+            const pieData = {
+                labels: platforms,
+                values: counts,
+                type: 'pie',
+                hole: 0.4,
+                textinfo: 'label+percent',
+                textposition: 'outside',
+                automargin: true,
+                marker: {
+                    colors: [colors.primary, colors.secondary, colors.accent1, colors.accent2, colors.accent3]
+                }
+            };
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                showlegend: false,
+                margin: { l: 30, r: 30, b: 30, t: 30, pad: 0 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('pieChart', [pieData], layout, chartConfig);
+        });
+    
+    // Fetch data for heatmap (screen time vs stress)
+    fetch('/api/stress_vs_screen_time')
+        .then(response => response.json())
+        .then(data => {
+            const screenTimes = data.map(d => d.screen_time_before_sleep);
+            const stressLevels = data.map(d => d.stress_level);
+            
+            const heatmapData = {
+                x: screenTimes,
+                y: stressLevels,
+                type: 'histogram2d',
+                colorscale: [
+                    [0, colors.accent3],
+                    [0.5, colors.secondary],
+                    [1, colors.primary]
+                ],
+                showscale: true
+            };
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                xaxis: {
+                    title: 'Screen Time Before Sleep (hours)',
+                    gridcolor: '#eee'
+                },
+                yaxis: {
+                    title: 'Stress Level (0-10)',
+                    gridcolor: '#eee'
+                },
+                margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('heatmapChart', [heatmapData], layout, chartConfig);
+        });
+    
+    // Fetch data for bar chart (job satisfaction by platform)
+    fetch('/api/job_satisfaction_by_platform')
+        .then(response => response.json())
+        .then(data => {
+            const platforms = data.map(d => d.social_platform_preference);
+            const satisfactionScores = data.map(d => d.avg_satisfaction);
+            
+            const barData = {
+                x: platforms,
+                y: satisfactionScores,
+                type: 'bar',
+                marker: {
+                    color: colors.secondary,
+                    opacity: 0.8
+                }
+            };
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                xaxis: {
+                    title: 'Platform',
+                    gridcolor: '#eee'
+                },
+                yaxis: {
+                    title: 'Job Satisfaction',
+                    gridcolor: '#eee'
+                },
+                margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('barChart', [barData], layout, chartConfig);
+        });
+    
+    // Fetch data for scatter plot (social media time vs productivity)
+    fetch('/api/social_time_vs_productivity')
+        .then(response => response.json())
+        .then(data => {
+            const socialTimes = data.map(d => d.daily_social_media_time);
+            const productivityScores = data.map(d => d.perceived_productivity_score);
+            
+            const scatterData = {
+                x: socialTimes,
+                y: productivityScores,
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                    color: socialTimes,
+                    colorscale: [[0, colors.accent2], [1, colors.primary]],
+                    size: 10,
+                    opacity: 0.7
+                }
+            };
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                xaxis: {
+                    title: 'Daily Social Media Time (hours)',
+                    gridcolor: '#eee'
+                },
+                yaxis: {
+                    title: 'Productivity Score',
+                    gridcolor: '#eee'
+                },
+                margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('scatterChart', [scatterData], layout, chartConfig);
+        });
+    
+    // Create platform KPIs table
+    fetch('/api/platform_kpis')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('platformKpiTable');
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                
+                const platformCell = document.createElement('td');
+                platformCell.textContent = row.platform;
+                platformCell.style.fontWeight = 'bold';
+                tr.appendChild(platformCell);
+                
+                const usageCell = document.createElement('td');
+                usageCell.textContent = row.avg_usage.toFixed(1) + ' hrs';
+                tr.appendChild(usageCell);
+                
+                const prodCell = document.createElement('td');
+                prodCell.textContent = row.avg_productivity.toFixed(1);
+                tr.appendChild(prodCell);
+                
+                const stressCell = document.createElement('td');
+                stressCell.textContent = row.avg_stress.toFixed(1);
+                tr.appendChild(stressCell);
+                
+                tableBody.appendChild(tr);
+            });
+        });
+    
+    // Create matrix chart for job type vs burnout vs stress
+    fetch('/api/job_burnout_stress_matrix')
+        .then(response => response.json())
+        .then(data => {
+            const jobTypes = [...new Set(data.map(d => d.job_type))];
+            const burnoutDays = [...new Set(data.map(d => d.burnout_days))];
+            const z = [];
+            
+            // Create z matrix for heatmap
+            for (let i = 0; i < jobTypes.length; i++) {
+                const row = [];
+                for (let j = 0; j < burnoutDays.length; j++) {
+                    const matched = data.find(d => 
+                        d.job_type === jobTypes[i] && 
+                        d.burnout_days === burnoutDays[j]
+                    );
+                    row.push(matched ? matched.avg_stress : 0);
+                }
+                z.push(row);
+            }
+            
+            const heatmapData = {
+                z: z,
+                x: burnoutDays.map(d => d + ' days'),
+                y: jobTypes,
+                type: 'heatmap',
+                colorscale: [
+                    [0, colors.accent3],
+                    [0.5, colors.accent1],
+                    [1, colors.primary]
+                ],
+                showscale: true,
+                colorbar: {
+                    title: 'Stress Level',
+                    titleside: 'right'
+                }
+            };
+            
+            const layout = {
+                autosize: true,
+                font: { family: 'Nunito, sans-serif' },
+                xaxis: {
+                    title: 'Burnout Days per Month',
+                    side: 'bottom'
+                },
+                yaxis: {
+                    title: 'Job Type'
+                },
+                margin: { l: 120, r: 50, b: 50, t: 30, pad: 4 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('matrixChart', [heatmapData], layout, chartConfig);
+        });
+});
+</script>
+{% endblock %}
